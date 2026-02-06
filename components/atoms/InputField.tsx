@@ -1,15 +1,37 @@
 type Props = {
+  label: string;
   placeholder: string;
   type?: string;
+  register: any;
+  name: string;
+  error?: string;
 };
 
-const InputField = ({ placeholder, type = "text" }: Props) => {
+const InputField = ({
+  label,
+  placeholder,
+  type = "text",
+  register,
+  name,
+  error,
+}: Props) => {
   return (
-    <input
-      className={`h-8 border border-white/15 w-[80%] rounded-sm p-2 text-sm placeholder:text-white/30`}
-      placeholder={placeholder}
-      type={type}
-    />
+    <div className="w-[80%]">
+      <label className="text-sm text-white/80" htmlFor="">
+        {label}
+        {error && (
+          <span>
+            : <span className="text-red-400 text-xs">{error}</span>
+          </span>
+        )}
+      </label>
+      <input
+        className={`mt-1 h-8 border border-white/45 w-full rounded-sm p-2 text-sm placeholder:text-white/30`}
+        placeholder={placeholder}
+        type={type}
+        {...register(name)}
+      />
+    </div>
   );
 };
 
