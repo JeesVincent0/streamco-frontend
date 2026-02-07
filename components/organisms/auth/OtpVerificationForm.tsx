@@ -80,10 +80,10 @@ const OtpVerificationForm = () => {
 
       const response = await otpVerificationApi(body);
 
-      console.log(response);
-
-      localStorage.removeItem("id");
-      router.push("/");
+      if (response.success) {
+        localStorage.removeItem("id");
+        router.push("/");
+      }
     } catch (error) {
       const axiosError = error as AxiosError<{
         message: string;
@@ -108,11 +108,6 @@ const OtpVerificationForm = () => {
     try {
       const id = localStorage.getItem("id");
 
-      if (!id) {
-        SetServerErrorMessage("Session expired");
-        return;
-      }
-
       // await resendOtpApi({ id });
 
       // Reset timer to 60 seconds after resend
@@ -133,7 +128,9 @@ const OtpVerificationForm = () => {
       {!isAllowed ? (
         <div className="flex flex-col justify-center items-center gap-4 bg-white/3 py-10 w-full rounded-md border border-white/45">
           <p className="text-red-400 text-sm">
-            Too many attempts or not allowed to access this page.
+            {ServerErrorMessage
+              ? ServerErrorMessage
+              : "Too many attempts or not allowed to access this page."}
           </p>
 
           <button
