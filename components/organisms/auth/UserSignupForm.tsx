@@ -1,19 +1,35 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import { AxiosError } from "axios";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import InputField from "@/components/atoms/InputField";
 import SelectField from "@/components/atoms/SelectField";
 import GoogleSignupButton from "@/components/molecules/GoogleSingupButton";
-import { UserSingUp } from "@/features/auth/types/user-signup.type";
+
 import { signupUser } from "@/features/auth/api/signup-user.api";
+import { UserSingUp } from "@/features/auth/types/user-signup.type";
 import { signupSchema } from "@/features/auth/validators/signup-schema.validator";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import Link from "next/link";
-import { AxiosError } from "axios";
+
+/*
+ *
+ * UserSignupForm component is responsible for rendering
+ * the user signup form and handling the signup process.
+ * It includes form validation using react-hook-form and zod,
+ * and makes an API call to register the user. If the signup is
+ * successful, it stores the user ID in localStorage and navigates
+ * to the OTP verification page. If there is an error during signup,
+ * it displays the error message.
+ *
+ */
 
 const UserSignupForm = () => {
   const [serverErrorMessage, setServerErrorMessage] = useState("");
+  const router = useRouter();
 
   const {
     register,
@@ -21,11 +37,22 @@ const UserSignupForm = () => {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
+  // Handle form submission
   const onSubmit = async (data: UserSingUp) => {
     try {
+      // Clear previous server error message
       setServerErrorMessage("");
-      await signupUser(data);
-      alert("Signup successfull");
+
+      // Make API call to signup user
+      const response = await signupUser(data);
+      if (response.status !== "success") {
+        setServerErrorMessage(response.message || "Signup failed");
+        return;
+      }
+
+      // Store user ID in localStorage and navigate to OTP verification page
+      localStorage.setItem("id", response.data?.id || "");
+      router.push("/signup/otp-verification");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || "Signup failed";

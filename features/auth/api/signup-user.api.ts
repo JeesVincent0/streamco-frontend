@@ -1,8 +1,13 @@
 import { UserSingUp } from "@/features/auth/types/user-signup.type";
 import axios from "axios";
 
-export const signupUser = async (data: UserSingUp) => {
-  console.log(data);
+export const signupUser = async (
+  data: UserSingUp,
+): Promise<{
+  status: string;
+  message: string;
+  data?: { id: string; email: string };
+}> => {
   const response = await axios.post(
     "http://localhost:3001/api/auth/register",
     data,
