@@ -8,9 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { otpVerificationApi } from "@/features/auth/api/otp-verification.api";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { getOtpTimerApi } from "@/features/auth/api/get-otp-timer.api";
+import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
+import { string } from "zod";
 // import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
 
 const OtpVerificationForm = () => {
@@ -38,7 +40,6 @@ const OtpVerificationForm = () => {
     const fetchTimer = async () => {
       try {
         const data = await getOtpTimerApi(id);
-        console.log(data.data.timer);
         setTimeLeft(data.data.timer);
       } catch (error) {
         const axiosError = error as AxiosError<{
@@ -106,16 +107,26 @@ const OtpVerificationForm = () => {
     if (timeLeft > 0) return;
 
     try {
-      const id = localStorage.getItem("id");
+      const id = localStorage.getItem("id") || "";
 
-      // await resendOtpApi({ id });
+      const response = await resendOtpApi({ id });
 
       // Reset timer to 60 seconds after resend
-      setTimeLeft(60);
+      setTimeLeft(response.data.timer);
 
       SetServerErrorMessage("OTP resent successfully");
     } catch (error) {
-      SetServerErrorMessage("Failed to resend OTP");
+      const axiosError = error as AxiosError<{
+        message: string;
+        data: { cachedUser: boolean };
+      }>;
+
+      const data = axiosError.response?.data;
+
+      if (data?.data?.cachedUser === false) {
+        SetServerErrorMessage(data.message);
+        setIsAllowed(false);
+      }
     }
   };
 

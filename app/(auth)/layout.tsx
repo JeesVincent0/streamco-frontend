@@ -16,7 +16,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
         {children}
       </div>
-      <div className="absolute bg-[#1F1F1F] bottom-3 left-1/2 transform -translate-x-1/2 text-[12px] text-white/25">
+      {/* <div className="absolute bg-[#1F1F1F] bottom-3 left-1/2 transform -translate-x-1/2 text-[12px] text-white/25">
         <div>
           <p className="inline">Copyright ©️ 2026-PRESENT Streamco Inc.</p>
           <Image
@@ -41,7 +41,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
             width={16}
           />
         </div>
-      </div>
+      </div> */}
     </>
   );
 };
