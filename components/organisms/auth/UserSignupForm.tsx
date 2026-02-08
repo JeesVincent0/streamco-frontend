@@ -11,7 +11,7 @@ import InputField from "@/components/atoms/InputField";
 import SelectField from "@/components/atoms/SelectField";
 import GoogleSignupButton from "@/components/molecules/GoogleSingupButton";
 
-import { signupUser } from "@/features/auth/api/signup-user.api";
+import { signupUser } from "@/features/auth/api/user/signup-user.api";
 import { UserSingUp } from "@/features/auth/types/user-signup.type";
 import { signupSchema } from "@/features/auth/validators/signup-schema.validator";
 
@@ -52,7 +52,7 @@ const UserSignupForm = () => {
 
       // Store user ID in localStorage and navigate to OTP verification page
       localStorage.setItem("id", response.data?.id || "");
-      router.push("/signup/otp-verification");
+      router.push("/otp-verification");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || "Signup failed";
