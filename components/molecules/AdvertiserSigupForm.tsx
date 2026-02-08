@@ -24,6 +24,7 @@ const AdvertiserSigupForm = () => {
 
   const handleOnSubmit = async (data: AdvertiserFormData) => {
     try {
+      setErrorMessage("");
       const response = await signupAdvertiser(data);
 
       if (response.status === "success") {
