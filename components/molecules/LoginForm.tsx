@@ -26,7 +26,7 @@ const LoginForm = () => {
     try {
       setErrorMessage("");
       const response = await userSigninApi(data);
-      if (response.data?.status === "success") {
+      if (response?.status === "success") {
         router.push("/");
       }
 
