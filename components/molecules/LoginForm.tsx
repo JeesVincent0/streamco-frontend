@@ -16,6 +16,7 @@ const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
+  // form validation function
   const {
     register,
     handleSubmit,
@@ -24,8 +25,11 @@ const LoginForm = () => {
 
   const handleOnSubmit = async (data: { email: string; password: string }) => {
     try {
+      // Clearing error message and call sigin api with form data.
       setErrorMessage("");
       const response = await userSigninApi(data);
+
+      // Role based redirection after successfull signin
       if (response?.status === "success") {
         if (response.data.role === "ADVERTISER") {
           router.push("/advertiser");
@@ -38,6 +42,8 @@ const LoginForm = () => {
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const data = axiosError.response?.data;
+
+      // setting server error
       setErrorMessage(
         data?.message || "Something wend wrong, try again after sometimes",
       );
@@ -59,6 +65,7 @@ const LoginForm = () => {
       </div>
 
       <div className="w-[80%]">
+        {/* Email input field */}
         <ShInput
           error={errors.email?.message}
           label="Email"
@@ -69,6 +76,7 @@ const LoginForm = () => {
           htmlFor="input-email"
         />
 
+        {/* Password input field */}
         <ShInput
           error={errors.password?.message}
           label="Password"
@@ -79,6 +87,7 @@ const LoginForm = () => {
           htmlFor="input-password"
         />
 
+        {/* submit button */}
         <div className="mt-2">
           <ShButton disabled={isSubmitting}>
             {isSubmitting ? (
@@ -92,12 +101,16 @@ const LoginForm = () => {
           </ShButton>
         </div>
       </div>
+
+      {/* Redirection link for create new account */}
       <Link
         className="text-sm text-white/60 hover:text-white/80 hover:underline"
         href={`/signin`}
       >
         Create new account ?
       </Link>
+
+      {/* Redirection link for forgot password  */}
       <Link
         className="text-sm text-white/60 hover:text-white/80 hover:underline"
         href={`/forgot-password`}
