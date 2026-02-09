@@ -8,9 +8,8 @@ export const signupAdvertiser = async (
   message: string;
   data?: { id: string; email: string };
 }> => {
-  console.log(data);
   const response = await axios.post(
-    "http://localhost:3001/api/auth/advertiser/register",
+    "http://localhost:3001/api/auth/register/advertiser",
     data,
   );
 

@@ -9,7 +9,7 @@ export const signupUser = async (
   data?: { id: string; email: string };
 }> => {
   const response = await axios.post(
-    "http://localhost:3001/api/auth/register",
+    "http://localhost:3001/api/auth/register/user",
     data,
   );
 

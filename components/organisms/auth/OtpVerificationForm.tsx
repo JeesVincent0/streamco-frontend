@@ -6,7 +6,7 @@ import { otpVerificationSchema } from "@/features/auth/validators/otp-verificati
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { otpVerificationApi } from "@/features/auth/api/otp-verification.api";
+import { confrimRegistrationApi } from "@/features/auth/api/confrim-registration.api";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { getOtpTimerApi } from "@/features/auth/api/get-otp-timer.api";
@@ -78,9 +78,9 @@ const OtpVerificationForm = () => {
         id: localStorage.getItem("id") || "",
       };
 
-      const response = await otpVerificationApi(body);
+      const response = await confrimRegistrationApi(body);
 
-      if (response.success) {
+      if (response.status === "success") {
         localStorage.removeItem("id");
         router.push("/");
       }
@@ -93,7 +93,7 @@ const OtpVerificationForm = () => {
       }>;
 
       const data = axiosError.response?.data;
-      if (data?.data.cachedUser === false) {
+      if (data?.data?.cachedUser === false) {
         setIsAllowed(false);
       }
 
