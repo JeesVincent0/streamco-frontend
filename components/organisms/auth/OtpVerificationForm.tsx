@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import InputField from "@/components/atoms/InputField";
 import SubmitButton from "@/components/atoms/SubmitButton";
 import { otpVerificationSchema } from "@/features/auth/validators/otp-verification.validator";
@@ -8,12 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { otpVerificationApi } from "@/features/auth/api/otp-verification.api";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { getOtpTimerApi } from "@/features/auth/api/get-otp-timer.api";
 import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
-import { string } from "zod";
-// import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
 
 const OtpVerificationForm = () => {
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
@@ -24,6 +21,8 @@ const OtpVerificationForm = () => {
   });
 
   const router = useRouter();
+
+  const handleGoBack = () => router.back();
 
   const {
     register,
@@ -192,12 +191,12 @@ const OtpVerificationForm = () => {
             text={"Verify OTP"}
           />
 
-          <Link
+          <button
+            onClick={handleGoBack}
             className="text-sm text-white/60 hover:text-white/80 hover:underline"
-            href={"/signup"}
           >
-            Back to Signup page ?
-          </Link>
+            Go to back?
+          </button>
         </form>
       )}
     </div>
