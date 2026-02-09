@@ -27,9 +27,14 @@ const LoginForm = () => {
       setErrorMessage("");
       const response = await userSigninApi(data);
       if (response?.status === "success") {
-        router.push("/");
+        if (response.data.role === "ADVERTISER") {
+          router.push("/advertiser");
+        } else if (response.data.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       }
-
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const data = axiosError.response?.data;
