@@ -14,6 +14,7 @@ import { userSigninApi } from "@/features/auth/api/login.api";
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
+  const [isVerified, setIsVerified] = useState(true);
   const router = useRouter();
 
   // form validation function
@@ -26,6 +27,7 @@ const LoginForm = () => {
   const handleOnSubmit = async (data: { email: string; password: string }) => {
     try {
       // Clearing error message and call sigin api with form data.
+      setIsVerified(true);
       setErrorMessage("");
       const response = await userSigninApi(data);
 
@@ -42,6 +44,12 @@ const LoginForm = () => {
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const data = axiosError.response?.data;
+
+      if(data?.data?.isVerified === false){
+        setIsVerified(false);
+        setErrorMessage(data?.message || "User not verified");
+        return;
+      }
 
       // setting server error
       setErrorMessage(
@@ -101,6 +109,16 @@ const LoginForm = () => {
           </ShButton>
         </div>
       </div>
+
+      {/* Redirection link for email verification */}
+      {!isVerified && (
+        <Link
+          className="text-sm text-red-400 hover:text-white/80 hover:underline"
+          href={`/verify-email`}
+        >
+          Verify Email?
+        </Link>
+      )}
 
       {/* Redirection link for create new account */}
       <Link

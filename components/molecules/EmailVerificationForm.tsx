@@ -23,8 +23,9 @@ const EmailVerificationForm = () => {
 
   const handleGoBack = () => router.back();
 
-  const handleOnSubmit = async (data: { email: string }) => {
+  const handleOnSubmit = async (data: { email: string, purpose: string }) => {
     try {
+      data.purpose = "reset_password";
       const response = await generateOtpApi(data);
       if (response.status === "success") {
         localStorage.setItem("id", response.data.id);
