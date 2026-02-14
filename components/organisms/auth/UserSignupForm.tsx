@@ -3,17 +3,28 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AxiosError } from "axios";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import InputField from "@/components/atoms/InputField";
-import SelectField from "@/components/atoms/SelectField";
 import GoogleSignupButton from "@/components/molecules/GoogleSingupButton";
 
 import { signupUser } from "@/features/auth/api/user/signup-user.api";
 import { UserSingUp } from "@/features/auth/types/user-signup.type";
 import { signupSchema } from "@/features/auth/validators/signup-schema.validator";
+import ShInput from "@/components/atoms/ShInput";
+import ShButton from "@/components/atoms/ShButton";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/atoms/select";
+import { Field, FieldLabel } from "@/components/ui/field";
 
 /*
  *
@@ -34,6 +45,7 @@ const UserSignupForm = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
@@ -61,109 +73,154 @@ const UserSignupForm = () => {
   };
 
   return (
-    <div className="flex flex-col items-center w-200 gap-3">
+    <div className="flex flex-col items-center w-full px-4">
       {/* Google button */}
-      <GoogleSignupButton />
+      <div className="w-full max-w-4xl">
+        <GoogleSignupButton />
+      </div>
 
-      <p className="text-white/50">or</p>
+      <p className="dark:text-white/50 text-black/50 my-3">or</p>
 
-      {/* User singup form using email */}
+      {/* Signup Form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col justify-center items-center gap-4 bg-white/3 py-4 w-full rounded-md border border-white/45"
+        className="w-full max-w-4xl dark:bg-white/10 p-6 rounded-lg border dark:border-white/15 border-black/15 space-y-6"
       >
-        <div className="w-170 text-sm">
+        <div className="w-full text-sm text-center md:text-left">
           <p>
-            Singup:{" "}
-            <span className="text-red-400 text-sm">{serverErrorMessage}</span>
+            <span className="text-lg font-semibold">User Signup:</span>
+            <span className="text-red-400 text-sm">
+              {serverErrorMessage ? serverErrorMessage : ""}
+            </span>
           </p>
         </div>
-        <div className="flex justify-center items-center">
-          <div className="flex flex-col justify-center w-85 gap-4">
-            {/* first name input field */}
-            <InputField
-              label={"First Name"}
-              placeholder=""
-              register={register}
-              name="firstName"
+
+        {/* Form Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT COLUMN */}
+          <div className="space-y-4">
+            <ShInput
               error={errors.firstName?.message}
+              label="First Name"
+              placeholder="Enter first name"
+              type="text"
+              name="firstName"
+              register={register}
+              htmlFor="input-first-name"
             />
 
-            {/* Last name input field */}
-            <InputField
-              label={"Last Name"}
-              placeholder=""
-              register={register}
-              name="lastName"
+            <ShInput
               error={errors.lastName?.message}
+              label="Last Name"
+              placeholder="Enter last name"
+              type="text"
+              name="lastName"
+              register={register}
+              htmlFor="input-last-name"
             />
 
-            {/* email input field */}
-            <InputField
-              label={"Email"}
-              placeholder=""
-              type="email"
-              register={register}
-              name="email"
+            <ShInput
               error={errors.email?.message}
+              label="Email"
+              placeholder="Enter email"
+              type="email"
+              name="email"
+              register={register}
+              htmlFor="input-email"
             />
 
-            {/* Gender selction field */}
-            <SelectField
-              register={register}
-              name="gender"
-              error={errors.gender?.message}
-            />
+            {/* Gender */}
+            <Field>
+              <FieldLabel>
+                Gender{" "}
+                <span className="text-xs text-red-400">
+                  {errors.gender?.message}
+                </span>
+              </FieldLabel>
+
+              <Controller
+                name="gender"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Gender</SelectLabel>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
+                        <SelectItem value="NON_BINARY">Non Binary</SelectItem>
+                        <SelectItem value="PREFER_NOT_TO_SAY">
+                          Prefer not to say
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
           </div>
 
-          <div className="flex flex-col justify-center w-85 gap-4">
-            {/* DOB input field */}
-            <InputField
-              label={"DOB"}
-              placeholder=""
-              type="date"
-              register={register}
-              name="dob"
+          {/* RIGHT COLUMN */}
+          <div className="space-y-4">
+            <ShInput
               error={errors.dob?.message}
+              label="Date of Birth"
+              placeholder="Select date of birth"
+              type="date"
+              name="dob"
+              register={register}
+              htmlFor="input-dob"
             />
 
-            {/* Password input field */}
-            <InputField
-              label={"Password"}
-              placeholder=""
-              type="password"
-              register={register}
-              name="password"
+            <ShInput
               error={errors.password?.message}
-            />
-
-            {/* Confirm password input field */}
-            <InputField
-              label={"Confirm Password"}
-              placeholder=""
+              label="Password"
+              placeholder="Enter password"
               type="password"
+              name="password"
               register={register}
-              name="confirmPassword"
-              error={errors.confirmPassword?.message}
+              htmlFor="input-password"
             />
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-7 h-8 border border-white/75 hover:border-white w-[80%] rounded-sm bg-[#FF7701] hover:bg-[#c95e00] font-semibold text-sm hover:text-[15px] hover:cursor-pointer"
-            >
-              {isSubmitting ? "Signing Up..." : "SignUp"}
-            </button>
+            <ShInput
+              error={errors.confirmPassword?.message}
+              label="Confirm Password"
+              placeholder="Confirm password"
+              type="password"
+              name="confirmPassword"
+              register={register}
+              htmlFor="input-confirm-password"
+            />
+
+            <ShButton classValue={`mt-8`} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Submitting...
+                </>
+              ) : (
+                "Signup"
+              )}
+            </ShButton>
           </div>
         </div>
 
-        <Link
-          className="text-sm text-white/60 hover:text-white/80 hover:underline"
-          href={`/signin`}
-        >
-          Already have an account ?
-        </Link>
+        {/* Signin Link */}
+        <div className="text-center">
+          <Link
+            className="text-sm dark:text-white/60 text-black/60 hover:text-white hover:underline"
+            href="/signin"
+          >
+            Already have an account?
+          </Link>
+        </div>
       </form>
     </div>
   );

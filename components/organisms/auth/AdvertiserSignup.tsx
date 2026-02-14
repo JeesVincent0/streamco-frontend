@@ -7,7 +7,7 @@ const AdvertiserSignup = () => {
       {/* Google button */}
       <GoogleSignupButton />
 
-      <p className="text-white/50">or</p>
+      <p className="dark:text-white/50 text-black/50">or</p>
 
       {/* User singup form using email */}
       <AdvertiserSigupForm />

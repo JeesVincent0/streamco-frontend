@@ -11,6 +11,9 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { getOtpTimerApi } from "@/features/auth/api/get-otp-timer.api";
 import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
+import ShInput from "@/components/atoms/ShInput";
+import ShButton from "@/components/atoms/ShButton";
+import { Spinner } from "@/components/ui/spinner";
 
 const OtpVerificationForm = () => {
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
@@ -136,7 +139,7 @@ const OtpVerificationForm = () => {
   return (
     <div className="w-110 mt-30">
       {!isAllowed ? (
-        <div className="flex flex-col justify-center items-center gap-4 bg-white/3 py-10 w-full rounded-md border border-white/45">
+        <div className="flex flex-col justify-center items-center gap-4 bg-white/15 py-10 w-full rounded-md border dark:border-white/15">
           <p className="text-red-400 text-sm">
             {ServerErrorMessage
               ? ServerErrorMessage
@@ -145,7 +148,7 @@ const OtpVerificationForm = () => {
 
           <button
             onClick={handleBack}
-            className="text-sm text-white/60 hover:text-white/80 hover:underline"
+            className="text-sm dark:text-white/60 text-black/60 dark:hover:text-white/80 hover:text-black/80 hover:underline"
           >
             Go back
           </button>
@@ -153,31 +156,33 @@ const OtpVerificationForm = () => {
       ) : (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col justify-center items-center gap-4 bg-white/3 py-10 w-full rounded-md border border-white/45"
+          className="flex flex-col items-center gap-4 dark:bg-white/10 p-6 md:p-6 w-full  mx-auto rounded-md border dark:border-white/15 border-black/15"
         >
-          <div className="w-[80%]">
-            <p className="text-sm">
+          <div className="w-full">
+            <p className="font-bold">
               OTP verification:{" "}
               <span className="text-sm text-red-400">{ServerErrorMessage}</span>
             </p>
           </div>
 
-          <InputField
-            label={"Enter OTP"}
-            placeholder={"OTP number"}
-            register={register}
-            name={"otp"}
+          <ShInput
             error={errors.otp?.message}
+            label="Enter OTP"
+            placeholder="OTP"
+            type="text"
+            name="otp"
+            register={register}
+            htmlFor="input-otp"
           />
 
-          <div className="w-[80%] flex justify-between text-sm">
-            <p className="text-white/50">Timer: {timeLeft}s</p>
+          <div className="w-full flex justify-between text-sm">
+            <p className="dark:text-white/50 text-black/50">Timer: {timeLeft}s</p>
 
             <p
               onClick={handleResendOtp}
-              className={`text-white/40 ${
+              className={`dark:text-white/40 text-black/50 ${
                 timeLeft === 0
-                  ? "hover:cursor-pointer hover:underline hover:text-white/70"
+                  ? "hover:cursor-pointer hover:underline dark:hover:text-white/70 hover:text-black/70"
                   : "opacity-50 cursor-not-allowed"
               }`}
             >
@@ -185,15 +190,22 @@ const OtpVerificationForm = () => {
             </p>
           </div>
 
-          <SubmitButton
-            isSubmitting={isSubmitting}
-            submittingText={"Verifying..."}
-            text={"Verify OTP"}
-          />
+          <div className="w-full mt-2">
+            <ShButton disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify OTP"
+              )}
+            </ShButton>
+          </div>
 
           <button
             onClick={handleGoBack}
-            className="text-sm text-white/60 hover:text-white/80 hover:underline"
+            className="text-sm dark:text-white/60 text-black/60 dark:hover:text-white/80 hover:text-black/80 hover:underline"
           >
             Go to back?
           </button>

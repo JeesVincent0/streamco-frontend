@@ -43,7 +43,7 @@ const AdvertiserSigupForm = () => {
   return (
     <form
       onSubmit={handleSubmit(handleOnSubmit)}
-      className="flex flex-col items-center gap-4 bg-white/3 p-4 md:p-6 w-full  mx-auto rounded-md border border-white/45"
+      className="flex flex-col items-center gap-4 dark:bg-white/10 p-4 md:p-6 w-full  mx-auto rounded-md border dark:border-white/15 border-black/15"
     >
       <div className="w-full text-sm text-center md:text-left">
         <p>
@@ -118,7 +118,7 @@ const AdvertiserSigupForm = () => {
       </div>
 
       <div className="w-full mt-2">
-        <ShButton disabled={isSubmitting}>
+        <ShButton  disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <Spinner data-icon="inline-start" />

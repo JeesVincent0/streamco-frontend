@@ -1,27 +1,25 @@
-'use client'
+"use client";
 
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+
+import { Button } from "@/components/ui/button";
 
 export function ToggleTheme() {
-  const { theme, resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme();
 
-  useEffect(() => setMounted(true), [])
-
-  if (!mounted) return null
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   return (
-    <div className="flex gap-2">
-      <button onClick={() => setTheme("light")}>
-        Light
-      </button>
-      <button onClick={() => setTheme("dark")}>
-        Dark
-      </button>
-      <button onClick={() => setTheme("system")}>
-        System
-      </button>
-    </div>
-  )
+    <Button variant="outline" size="icon" onClick={toggleTheme}>
+      {theme === "dark" ? (
+        <Sun className="h-[1.2rem] w-[1.2rem]" />
+      ) : (
+        <Moon className="h-[1.2rem] w-[1.2rem]" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
 }

@@ -5,15 +5,26 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div>
-        <div className="relative w-full">
-          <Image
-            className="ml-10 my-5"
-            src={`/streamco_dark_logo.png`}
-            alt="Next.js logo"
-            width={120}
-            height={40}
-            priority
-          />
+        <div className="relative flex justify-between w-full px-10 py-4">
+          <div className="">
+            <Image
+              className="hidden  dark:block"
+              src={`/streamco_dark_logo.png`}
+              alt="Next.js logo"
+              width={120}
+              height={40}
+              priority
+            />
+            <Image
+              className="dark:hidden"
+              src={`/streamco_light_logo.png`}
+              alt="Next.js logo"
+              width={120}
+              height={40}
+              priority
+            />
+          </div>
+          <ToggleTheme />
         </div>
         {children}
       </div>

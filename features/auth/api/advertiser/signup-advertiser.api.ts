@@ -9,7 +9,7 @@ export const signupAdvertiser = async (
   data?: { id: string; email: string };
 }> => {
   const response = await axios.post(
-    "http://localhost:3001/api/auth/register/advertiser",
+    "http://localhost:3001/api/auth/signup/advertiser",
     data,
   );
 
