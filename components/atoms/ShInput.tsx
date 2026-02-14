@@ -2,15 +2,16 @@ import { Field, FieldDescription, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 
 type Props = {
-  label: string;
+  label?: string;
   placeholder: string;
   type?: string;
-  register: any;
+  register?: any;
   name: string;
   error?: string;
   fieldDescription?: string;
   htmlFor: string;
   id?: string;
+  style?: string;
 };
 
 const ShInput = ({
@@ -23,22 +24,28 @@ const ShInput = ({
   name,
   error,
   fieldDescription,
+  style,
 }: Props) => {
   return (
     <>
       {" "}
       <Field>
-        <FieldLabel htmlFor={htmlFor}>
-          {label}: <span className="text-xs text-red-400">{error}</span>
-        </FieldLabel>
+        {label && (
+          <FieldLabel htmlFor={htmlFor}>
+            {label}: <span className="text-xs text-red-400">{error}</span>
+          </FieldLabel>
+        )}
         <Input
+          className={style}
           id={id}
           type={type}
           placeholder={placeholder}
           name={name}
-          {...register(name)}
+          {...(register ? register(name) : {})}
         />
-        <FieldDescription>{fieldDescription}</FieldDescription>
+        {fieldDescription && (
+          <FieldDescription>{fieldDescription}</FieldDescription>
+        )}
       </Field>
     </>
   );
