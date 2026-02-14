@@ -1,10 +1,11 @@
+import { ToggleTheme } from "@/components/molecules/ToggleTheme";
 import Image from "next/image";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div>
-        <div className="relative bg-[#1F1F1F] w-full">
+        <div className="relative w-full">
           <Image
             className="ml-10 my-5"
             src={`/streamco_dark_logo.png`}

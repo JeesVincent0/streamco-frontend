@@ -130,10 +130,10 @@ const AdvertiserSigupForm = () => {
         </ShButton>
       </div>
       <Link
-        className="text-sm text-white/60 hover:text-white/80 hover:underline"
+        className="text-sm dark:text-white/60 hover:text-white/80 hover:underline"
         href={`/advertiser/signin`}
       >
-        Already have an account ?
+        Already have an account ? 
       </Link>
     </form>
   );
