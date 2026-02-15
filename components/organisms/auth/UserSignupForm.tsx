@@ -64,7 +64,8 @@ const UserSignupForm = () => {
 
       // Store user ID in localStorage and navigate to OTP verification page
       localStorage.setItem("id", response.data?.id || "");
-      router.push("/otp-verification");
+      localStorage.setItem("otpResendAt", response.data?.otpResendAt || "");
+      router.push("/otp-verification?type=email-verification");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || "Signup failed";

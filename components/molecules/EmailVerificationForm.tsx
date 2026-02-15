@@ -23,13 +23,13 @@ const EmailVerificationForm = () => {
 
   const handleGoBack = () => router.back();
 
-  const handleOnSubmit = async (data: { email: string, purpose: string }) => {
+  const handleOnSubmit = async (data: { email: string, purpose?: string }) => {
     try {
       data.purpose = "reset_password";
       const response = await generateOtpApi(data);
       if (response.status === "success") {
         localStorage.setItem("id", response.data.id);
-        router.push("/otp-verification");
+        router.push("/otp-verification?type=reset");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;

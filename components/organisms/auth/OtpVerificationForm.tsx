@@ -1,15 +1,12 @@
 "use client";
 
-import InputField from "@/components/atoms/InputField";
-import SubmitButton from "@/components/atoms/SubmitButton";
 import { otpVerificationSchema } from "@/features/auth/validators/otp-verification.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { confrimRegistrationApi } from "@/features/auth/api/confrim-registration.api";
 import { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import { getOtpTimerApi } from "@/features/auth/api/get-otp-timer.api";
+import { useRouter, useSearchParams } from "next/navigation";
 import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
 import ShInput from "@/components/atoms/ShInput";
 import ShButton from "@/components/atoms/ShButton";
@@ -17,7 +14,6 @@ import { Spinner } from "@/components/ui/spinner";
 
 const OtpVerificationForm = () => {
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
-  const [timeLeft, setTimeLeft] = useState(60);
 
   const [isAllowed, setIsAllowed] = useState(() => {
     return !!localStorage.getItem("id");
@@ -33,32 +29,16 @@ const OtpVerificationForm = () => {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(otpVerificationSchema) });
 
-  // Fetch timer from server when page loads
-  useEffect(() => {
+  const getTimeleft = (): number => {
     const id = localStorage.getItem("id");
-
-    if (!id) return;
-
-    const fetchTimer = async () => {
-      try {
-        const data = await getOtpTimerApi(id);
-        setTimeLeft(data.data.timer);
-      } catch (error) {
-        const axiosError = error as AxiosError<{
-          message: string;
-          data: { cachedUser: boolean };
-        }>;
-        const data = axiosError.response?.data;
-
-        if (data?.data.cachedUser === false) {
-          localStorage.removeItem("id");
-          setIsAllowed(false);
-        }
-      }
-    };
-
-    fetchTimer();
-  }, []);
+    const otpResendAt = localStorage.getItem("otpResendAt");
+    if (!id || !otpResendAt) return 0;
+    const now = Date.now();
+    const expiry = new Date(otpResendAt).getTime();
+    const remainingTime = Math.max(0, Math.floor((expiry - now) / 1000));
+    return remainingTime;
+  };
+  const [timeLeft, setTimeLeft] = useState<number>(getTimeleft());
 
   // Countdown timer logic
   useEffect(() => {
@@ -71,21 +51,31 @@ const OtpVerificationForm = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
+  const searchParams = useSearchParams();
   // OTP submit handler
   const onSubmit = async (data: { otp: string }): Promise<void> => {
     try {
       SetServerErrorMessage("");
+      console.log("Submited");
 
       const body = {
         otp: data.otp,
         id: localStorage.getItem("id") || "",
       };
 
-      const response = await confrimRegistrationApi(body);
+      const type = searchParams.get("type");
+
+      let response;
+      if (type === "email-verification") {
+        console.log("OTP verification type email confim: ", type);
+        response = await confrimRegistrationApi(body);
+      } else if (type === "reset") {
+        console.log("OTP verification type from reset: ", type);
+      }
 
       if (response.status === "success") {
-        localStorage.removeItem("id");
-        router.push("/");
+        localStorage.clear();
+        router.push("/home");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{
@@ -113,8 +103,8 @@ const OtpVerificationForm = () => {
 
       const response = await resendOtpApi({ id });
 
-      // Reset timer to 60 seconds after resend
-      setTimeLeft(response.data.timer);
+      localStorage.setItem("otpResendAt", response.data?.otpResendAt);
+      setTimeLeft(getTimeleft());
 
       SetServerErrorMessage("OTP resent successfully");
     } catch (error) {
@@ -176,7 +166,9 @@ const OtpVerificationForm = () => {
           />
 
           <div className="w-full flex justify-between text-sm">
-            <p className="dark:text-white/50 text-black/50">Timer: {timeLeft}s</p>
+            <p className="dark:text-white/50 text-black/50">
+              Timer: {timeLeft}s
+            </p>
 
             <p
               onClick={handleResendOtp}

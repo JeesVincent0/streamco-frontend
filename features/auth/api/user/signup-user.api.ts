@@ -6,7 +6,7 @@ export const signupUser = async (
 ): Promise<{
   status: string;
   message: string;
-  data?: { id: string; email: string };
+  data?: { id: string; email: string; otpResendAt: string };
 }> => {
   const response = await axios.post(
     "http://localhost:3001/api/auth/signup/user",
