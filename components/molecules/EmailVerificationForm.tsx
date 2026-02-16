@@ -23,11 +23,12 @@ const EmailVerificationForm = () => {
 
   const handleGoBack = () => router.back();
 
-  const handleOnSubmit = async (data: { email: string, purpose?: string }) => {
+  const handleOnSubmit = async (data: { email: string; purpose?: string }) => {
     try {
       data.purpose = "reset_password";
       const response = await generateOtpApi(data);
       if (response.status === "success") {
+        localStorage.setItem("otpResendAt", response.data.otpResendAt);
         localStorage.setItem("id", response.data.id);
         router.push("/otp-verification?type=reset");
       }
@@ -42,9 +43,9 @@ const EmailVerificationForm = () => {
   return (
     <form
       onSubmit={handleSubmit(handleOnSubmit)}
-      className="flex flex-col items-center gap-4 bg-white/3 p-4 md:p-6 w-full  mx-auto rounded-md border border-white/45"
+      className="flex flex-col items-center gap-4 px-6 dark:bg-white/10 p-4 md:p-6 w-full  mx-auto rounded-md border dark:border-white/15"
     >
-      <div className="w-full text-sm font-semibold text-center md:text-left">
+      <div className="w-full text-sm font-semibold text-center  md:text-left">
         <p>
           Verify your email ID:
           <span className="text-red-400 text-sm">
@@ -77,7 +78,7 @@ const EmailVerificationForm = () => {
       </div>
       <button
         onClick={handleGoBack}
-        className="text-sm text-white/60 hover:text-white/80 hover:underline"
+        className="text-sm dark:text-white/60 dark:hover:text-white/80 hover:cursor-pointer hover:underline"
       >
         Go to back?
       </button>
