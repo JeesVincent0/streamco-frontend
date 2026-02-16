@@ -1,7 +1,12 @@
-import React from "react";
+import ResetPassword from "@/components/organisms/auth/ResetPassword";
+import AuthTemplate from "@/components/templates/AuthTemplate";
 
 const ResetPasswordPage = () => {
-  return <div>Reset passowrd</div>;
+  return (
+    <AuthTemplate>
+      <ResetPassword />
+    </AuthTemplate>
+  );
 };
 
 export default ResetPasswordPage;

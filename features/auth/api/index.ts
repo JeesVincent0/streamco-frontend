@@ -5,4 +5,4 @@ export * from "./generate-otp.api";
 export * from "./get-otp-timer.api";
 export * from "./login.api";
 export * from "./resend-otp.api";
-export * from "./verify-email-reset-password.api";
+export * from "./reset-password";
