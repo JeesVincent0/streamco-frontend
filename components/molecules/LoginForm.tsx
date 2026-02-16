@@ -11,6 +11,7 @@ import ShButton from "../atoms/ShButton";
 import { loginSchema } from "@/features/auth/validators/login-schema.validator";
 import Link from "next/link";
 import { userSigninApi } from "@/features/auth/api/login.api";
+import LinkText from "../atoms/LinkText";
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,10 +43,13 @@ const LoginForm = () => {
         }
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
+      const axiosError = error as AxiosError<{
+        message: string;
+        data: any;
+      }>;
       const data = axiosError.response?.data;
 
-      if(data?.data?.isVerified === false){
+      if (data?.data?.isVerified === false) {
         setIsVerified(false);
         setErrorMessage(data?.message || "User not verified");
         return;
@@ -61,9 +65,9 @@ const LoginForm = () => {
   return (
     <form
       onSubmit={handleSubmit(handleOnSubmit)}
-      className="flex flex-col items-center gap-4 bg-white/3 p-4 md:p-6 w-full  mx-auto rounded-md border border-white/45"
+      className="flex flex-col items-center gap-4 dark:bg-white/10 p-4 md:p-6 w-full  mx-auto rounded-md border dark:border-white/15"
     >
-      <div className="w-full text-sm text-center md:text-left">
+      <div className="w-[80%] flex  font-bold text-center md:text-left">
         <p>
           Login:
           <span className="text-red-400 text-sm">
@@ -72,7 +76,7 @@ const LoginForm = () => {
         </p>
       </div>
 
-      <div className="w-[80%]">
+      <div className="w-[80%] flex flex-col gap-3">
         {/* Email input field */}
         <ShInput
           error={errors.email?.message}
@@ -121,20 +125,9 @@ const LoginForm = () => {
       )}
 
       {/* Redirection link for create new account */}
-      <Link
-        className="text-sm text-white/60 hover:text-white/80 hover:underline"
-        href={`/signin`}
-      >
-        Create new account ?
-      </Link>
-
+      <LinkText path={"/signup"} text={`Create New Account?`} />
       {/* Redirection link for forgot password  */}
-      <Link
-        className="text-sm text-white/60 hover:text-white/80 hover:underline"
-        href={`/forgot-password`}
-      >
-        Forgot password?
-      </Link>
+      <LinkText path={"/forgot-password"} text={`Forgot Password?`} />
     </form>
   );
 };

@@ -5,7 +5,7 @@ const Login = () => {
   return (
     <div className="flex flex-col  items-center w-100 gap-3">
       {/* Google button */}
-      <GoogleSignupButton />
+      <GoogleSignupButton type={`Login`}/>
 
       <p className="text-white/50">or</p>
 
