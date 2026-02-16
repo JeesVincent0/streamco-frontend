@@ -11,6 +11,7 @@ import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
 import ShInput from "@/components/atoms/ShInput";
 import ShButton from "@/components/atoms/ShButton";
 import { Spinner } from "@/components/ui/spinner";
+import { verifyOtpResetPasswordApi } from "@/features/auth/api";
 
 const OtpVerificationForm = () => {
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
@@ -33,11 +34,12 @@ const OtpVerificationForm = () => {
     const id = localStorage.getItem("id");
     const otpResendAt = localStorage.getItem("otpResendAt");
     if (!id || !otpResendAt) return 0;
-    const now = Date.now();
+    const now = new Date().getTime();
     const expiry = new Date(otpResendAt).getTime();
     const remainingTime = Math.max(0, Math.floor((expiry - now) / 1000));
     return remainingTime;
   };
+
   const [timeLeft, setTimeLeft] = useState<number>(getTimeleft());
 
   // Countdown timer logic
@@ -56,7 +58,6 @@ const OtpVerificationForm = () => {
   const onSubmit = async (data: { otp: string }): Promise<void> => {
     try {
       SetServerErrorMessage("");
-      console.log("Submited");
 
       const body = {
         otp: data.otp,
@@ -65,17 +66,18 @@ const OtpVerificationForm = () => {
 
       const type = searchParams.get("type");
 
-      let response;
       if (type === "email-verification") {
-        console.log("OTP verification type email confim: ", type);
-        response = await confrimRegistrationApi(body);
+        const response = await confrimRegistrationApi(body);
+        if (response.status === "success") {
+          localStorage.clear();
+          router.push("/home");
+        }
       } else if (type === "reset") {
-        console.log("OTP verification type from reset: ", type);
-      }
-
-      if (response.status === "success") {
+        const response = await verifyOtpResetPasswordApi(body);
         localStorage.clear();
-        router.push("/home");
+        localStorage.setItem("id", response.data.id);
+        localStorage.setItem("purpose", "reset_password");
+        router.push("/forgot-password/reset");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{
@@ -99,7 +101,11 @@ const OtpVerificationForm = () => {
     if (timeLeft > 0) return;
 
     try {
-      const id = localStorage.getItem("id") || "";
+      const id = localStorage.getItem("id");
+      if (!id) {
+        setIsAllowed(false);
+        return;
+      }
 
       const response = await resendOtpApi({ id });
 
