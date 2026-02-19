@@ -74,10 +74,10 @@ const OtpVerificationForm = () => {
         }
       } else if (type === "reset") {
         const response = await verifyOtpResetPasswordApi(body);
-        localStorage.clear();
-        localStorage.setItem("id", response.data.id);
-        localStorage.setItem("purpose", "reset_password");
-        router.push("/forgot-password/reset");
+        if (response.status === "success") {
+          localStorage.clear();
+          router.push("/forgot-password/reset");
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError<{

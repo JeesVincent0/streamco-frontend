@@ -28,17 +28,17 @@ const ResetPasswordForm = () => {
   const handleOnSubmit = async (data: {
     password: string;
     confirmPassword: string;
-    id?: string | null;
   }) => {
     setErrorMessage("");
     const id = localStorage.getItem("id");
     if (!id) {
       setIsAllowed(false);
     }
-    data.id = id;
     try {
       const reseponse = await verifyResetPassword(data);
       if (reseponse.status === "success") {
+        localStorage.clear();
+        router.push("/home");
       }
     } catch (error) {
       const axiosResponse = error as AxiosError<{ message: string }>;
