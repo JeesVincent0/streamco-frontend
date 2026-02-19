@@ -5,7 +5,7 @@ export const verifyOtpResetPasswordApi = async (data: {
   id: string;
 }) => {
   const response = await axios.post(
-    "http://localhost:3001/api/auth/verify-reset-password",
+    "/api/auth/verify-reset-password",
     data,
   );
   return response.data;

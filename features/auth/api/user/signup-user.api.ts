@@ -9,7 +9,7 @@ export const signupUser = async (
   data?: { id: string; email: string; otpResendAt: string };
 }> => {
   const response = await axios.post(
-    "http://localhost:3001/api/auth/signup/user",
+    "/api/auth/signup/user",
     data,
   );
 

@@ -3,11 +3,9 @@ import axios from "axios";
 export const verifyResetPassword = async (data: {
   password: string;
   confirmPassword: string;
-  id?: string | null;
 }) => {
-  const response = await axios.post(
-    "http://localhost:3001/api/auth/reset-password",
-    data,
-  );
+  const response = await axios.post("/api/auth/reset-password", data, {
+    withCredentials: true,
+  });
   return response.data;
 };
