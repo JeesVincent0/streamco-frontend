@@ -12,6 +12,7 @@ import { signupAdvertiser } from "@/features/auth/api/advertiser/signup-advertis
 import { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import LinkText from "../atoms/LinkText";
 
 const AdvertiserSigupForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -118,7 +119,7 @@ const AdvertiserSigupForm = () => {
       </div>
 
       <div className="w-full mt-2">
-        <ShButton  disabled={isSubmitting}>
+        <ShButton disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <Spinner data-icon="inline-start" />
@@ -129,12 +130,7 @@ const AdvertiserSigupForm = () => {
           )}
         </ShButton>
       </div>
-      <Link
-        className="text-sm dark:text-white/60 hover:text-white/80 hover:underline"
-        href={`/advertiser/signin`}
-      >
-        Already have an account ? 
-      </Link>
+      <LinkText path={`/login`} text={`Already have an account?`} />
     </form>
   );
 };

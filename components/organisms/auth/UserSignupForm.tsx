@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/atoms/select";
 import { Field, FieldLabel } from "@/components/ui/field";
+import LinkText from "@/components/atoms/LinkText";
 
 /*
  *
@@ -215,12 +216,7 @@ const UserSignupForm = () => {
 
         {/* Signin Link */}
         <div className="text-center">
-          <Link
-            className="text-sm dark:text-white/60 text-black/60 hover:text-white hover:underline"
-            href="/signin"
-          >
-            Already have an account?
-          </Link>
+          <LinkText path={`/login`} text={`Already have an account?`} />
         </div>
       </form>
     </div>
