@@ -78,7 +78,7 @@ const UserSignupForm = () => {
     <div className="flex flex-col items-center w-full px-4">
       {/* Google button */}
       <div className="w-full max-w-4xl">
-        <GoogleSignupButton />
+        <GoogleSignupButton role={"user"} />
       </div>
 
       <p className="dark:text-white/50 text-black/50 my-3">or</p>
