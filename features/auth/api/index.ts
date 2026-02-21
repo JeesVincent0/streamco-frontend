@@ -6,3 +6,4 @@ export * from "./get-otp-timer.api";
 export * from "./login.api";
 export * from "./resend-otp.api";
 export * from "./reset-password";
+export * from "./admin";
