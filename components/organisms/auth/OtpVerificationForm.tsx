@@ -12,8 +12,17 @@ import ShInput from "@/components/atoms/ShInput";
 import ShButton from "@/components/atoms/ShButton";
 import { Spinner } from "@/components/ui/spinner";
 import { verifyOtpResetPasswordApi } from "@/features/auth/api";
+import {
+  useConfirmRegistrationMutation,
+  useResendOtpMutation,
+  useVerifyOtpResetPasswordMutation,
+} from "@/lib/service/authApi";
 
 const OtpVerificationForm = () => {
+  const [confirmRegistration, { isLoading }] = useConfirmRegistrationMutation();
+  const [resendOtp] = useResendOtpMutation();
+  const [verifyOtpResetPassword] = useVerifyOtpResetPasswordMutation();
+
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
 
   const [isAllowed, setIsAllowed] = useState(() => {
@@ -27,7 +36,7 @@ const OtpVerificationForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(otpVerificationSchema) });
 
   const getTimeleft = (): number => {
@@ -67,7 +76,7 @@ const OtpVerificationForm = () => {
       const type = searchParams.get("type");
 
       if (type === "email-verification") {
-        const response = await confrimRegistrationApi(body);
+        const response = await confirmRegistration(body).unwrap();
         if (response.status === "success") {
           localStorage.clear();
           if (response.data.role === "USER") {
@@ -77,21 +86,15 @@ const OtpVerificationForm = () => {
           }
         }
       } else if (type === "reset") {
-        const response = await verifyOtpResetPasswordApi(body);
+        const response = await verifyOtpResetPassword(body).unwrap();
         if (response.status === "success") {
           localStorage.clear();
           router.push("/forgot-password/reset");
         }
       }
-    } catch (error) {
-      const axiosError = error as AxiosError<{
-        message: string;
-        data: {
-          cachedUser: boolean;
-        };
-      }>;
+    } catch (err: any) {
+      const data = err?.data;
 
-      const data = axiosError.response?.data;
       if (data?.data?.cachedUser === false) {
         setIsAllowed(false);
       }
@@ -111,24 +114,20 @@ const OtpVerificationForm = () => {
         return;
       }
 
-      const response = await resendOtpApi({ id });
+      const response = await resendOtp({ id }).unwrap();
 
       localStorage.setItem("otpResendAt", response.data?.otpResendAt);
       setTimeLeft(getTimeleft());
 
       SetServerErrorMessage("OTP resent successfully");
-    } catch (error) {
-      const axiosError = error as AxiosError<{
-        message: string;
-        data: { cachedUser: boolean };
-      }>;
-
-      const data = axiosError.response?.data;
+    } catch (err: any) {
+      const data = err?.data;
 
       if (data?.data?.cachedUser === false) {
-        SetServerErrorMessage(data.message);
         setIsAllowed(false);
       }
+
+      SetServerErrorMessage(data?.message);
     }
   };
 
@@ -193,8 +192,8 @@ const OtpVerificationForm = () => {
           </div>
 
           <div className="w-full mt-2">
-            <ShButton disabled={isSubmitting}>
-              {isSubmitting ? (
+            <ShButton disabled={isLoading}>
+              {isLoading ? (
                 <>
                   <Spinner data-icon="inline-start" />
                   Verifying...
