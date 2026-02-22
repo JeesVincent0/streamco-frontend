@@ -13,12 +13,12 @@ const SearchBar = () => {
           placeholder="Search..."
         />
         <Button
-          className="dark:bg-[#FF7701] bg-[#FF7701] rounded-sm border dark:border-white/50 border-black/20 dark:hover:bg-[#e26900f3] hover:bg-[#e26900f3]"
+          className="dark:bg-[#FF7701] bg-[#FF7701] rounded-sm border dark:border-white/50 border-black/20 dark:hover:bg-[#e26900f3] hover:bg-[#e26900f3] hover:cursor-pointer"
           variant="outline"
           size={"icon"}
           aria-label="Search"
         >
-          <SearchIcon className="" />
+          <SearchIcon />
         </Button>
       </ButtonGroup>
     </>
