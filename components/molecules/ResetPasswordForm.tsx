@@ -35,10 +35,15 @@ const ResetPasswordForm = () => {
       setIsAllowed(false);
     }
     try {
-      const reseponse = await verifyResetPassword(data);
-      if (reseponse.status === "success") {
+      const response = await verifyResetPassword(data);
+      console.log(response);
+      if (response.status === "success") {
         localStorage.clear();
-        router.push("/home");
+        if (response.data.role === "USER") {
+          router.push("/home");
+        } else if (response.data.role === "ADVERTISER") {
+          router.push("/advertiser");
+        }
       }
     } catch (error) {
       const axiosResponse = error as AxiosError<{ message: string }>;
