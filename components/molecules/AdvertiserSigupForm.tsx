@@ -29,8 +29,9 @@ const AdvertiserSigupForm = () => {
       const response = await signupAdvertiser(data);
 
       if (response.status === "success") {
-        localStorage.setItem("id", response.data?.id || "");
-        router.push("/otp-verification");
+        localStorage.setItem("id", response.data?.id);
+        localStorage.setItem("otpResendAt", response.data.otpResendAt);
+        router.push("/otp-verification?type=email-verification");
       }
     } catch (error) {
       const exiosError = error as AxiosError<{ message: string }>;

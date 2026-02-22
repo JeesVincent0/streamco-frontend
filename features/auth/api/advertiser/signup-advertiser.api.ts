@@ -6,12 +6,9 @@ export const signupAdvertiser = async (
 ): Promise<{
   status: string;
   message: string;
-  data?: { id: string; email: string };
+  data: { id: string; purpose: string; otpResendAt: string };
 }> => {
-  const response = await axios.post(
-    "/api/auth/signup/advertiser",
-    data,
-  );
+  const response = await axios.post("/api/auth/signup/advertiser", data);
 
   return response.data;
 };

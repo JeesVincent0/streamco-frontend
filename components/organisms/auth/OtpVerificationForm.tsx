@@ -70,7 +70,11 @@ const OtpVerificationForm = () => {
         const response = await confrimRegistrationApi(body);
         if (response.status === "success") {
           localStorage.clear();
-          router.push("/home");
+          if (response.data.role === "USER") {
+            router.push("/home");
+          } else if (response.data.role === "ADVERTISER") {
+            router.push("/advertiser");
+          }
         }
       } else if (type === "reset") {
         const response = await verifyOtpResetPasswordApi(body);
