@@ -12,8 +12,13 @@ import { loginSchema } from "@/features/auth/validators/login-schema.validator";
 import Link from "next/link";
 import { userSigninApi } from "@/features/auth/api/login.api";
 import LinkText from "../atoms/LinkText";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/lib/slice/authSlice";
+import { ROLE } from "@/constants/role.enum";
 
 const LoginForm = () => {
+  const dispatch = useDispatch();
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isVerified, setIsVerified] = useState(true);
   const router = useRouter();
@@ -34,11 +39,33 @@ const LoginForm = () => {
 
       // Role based redirection after successfull signin
       if (response?.status === "success") {
-        if (response.data.role === "ADVERTISER") {
+        if (response.data.role === ROLE.ADVERTISER) {
+          dispatch(
+            setCredentials({
+              user: response.data.user,
+              role: response.data.role,
+            }),
+          );
           router.push("/advertiser");
-        } else if (response.data.role === "ADMIN") {
+        } else if (response.data.role === ROLE.ADMIN) {
+          dispatch(
+            setCredentials({
+              user: {
+                id: response.data.id,
+                name: "Admin",
+                email: "admin@gmail.com",
+              },
+              role: response.data.role,
+            }),
+          );
           router.push("/admin");
         } else {
+          dispatch(
+            setCredentials({
+              user: response.data.user,
+              role: response.data.role,
+            }),
+          );
           router.push("/");
         }
       }
