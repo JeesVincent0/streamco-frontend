@@ -10,17 +10,29 @@ import { PopoverContent } from "../atoms/popover";
 import { ROLE } from "@/constants/role.enum";
 import LinkButton from "../atoms/LinkButton";
 import { AUTH_ROUTES } from "@/constants/routers";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { Button } from "../ui/button";
+import { useLogoutUserMutation } from "@/lib/service/authApi";
+import { Spinner } from "../ui/spinner";
+import { logout } from "@/lib/slice/authSlice";
+import { useRouter } from "next/navigation";
 
 const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
+  const [logoutUser, { isLoading }] = useLogoutUserMutation();
+  const dispatch = useDispatch();
+  const router = useRouter();
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth,
   );
-  const handleLogout = () => {
+
+  const handleLogout = async () => {
     try {
-    } catch (error) {}
+      await logoutUser().unwrap();
+      localStorage.clear();
+      dispatch(logout());
+      router.replace(AUTH_ROUTES.LOGIN.ROOT);
+    } catch {}
   };
   return (
     <>
@@ -38,8 +50,17 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
             </LinkButton>
             {/* Logout button */}
             <Button onClick={handleLogout}>
-              <LogIn className="h-5" />
-              Logout
+              {isLoading ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Logout...
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-5" />
+                  Logout
+                </>
+              )}
             </Button>
           </>
         ) : (
