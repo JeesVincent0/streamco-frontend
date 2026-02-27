@@ -1,12 +1,23 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
+import {
+  IResendOtpRequest,
+  IResendOtpResponse,
+  IConfirmRegistrationRequest,
+  IConfirmRegistrationResponse,
+  IVerifyOtpResetPasswordRequest,
+  IVerifyOtpResetPasswordResponse,
+} from "../interfaces/";
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: axiosBaseQuery(),
   endpoints: (builder) => ({
     // Confrim user registration
-    confirmRegistration: builder.mutation<any, { otp: string; id: string }>({
+    confirmRegistration: builder.mutation<
+      IConfirmRegistrationResponse,
+      IConfirmRegistrationRequest
+    >({
       query: (data) => ({
         url: "/auth/signup/confirm",
         method: "POST",
@@ -15,7 +26,7 @@ export const authApi = createApi({
     }),
 
     // resend OTP
-    resendOtp: builder.mutation<any, { id: string }>({
+    resendOtp: builder.mutation<IResendOtpResponse, IResendOtpRequest>({
       query: (data) => ({
         url: "/auth/otp/resend",
         method: "POST",
@@ -24,7 +35,10 @@ export const authApi = createApi({
     }),
 
     // Verify OTP for Reset Password
-    verifyOtpResetPassword: builder.mutation<any, { otp: string; id: string }>({
+    verifyOtpResetPassword: builder.mutation<
+      IVerifyOtpResetPasswordResponse,
+      IVerifyOtpResetPasswordRequest
+    >({
       query: (data) => ({
         url: "/auth/verify-reset-password",
         method: "POST",
