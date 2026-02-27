@@ -15,6 +15,11 @@ import LinkText from "../atoms/LinkText";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/slice/authSlice";
 import { ROLE } from "@/constants/role.enum";
+import {
+  ADMIN_ROUTES,
+  ADVERTISER_ROUTES,
+  USER_ROUTES,
+} from "@/constants/routers";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
@@ -46,7 +51,7 @@ const LoginForm = () => {
               role: response.data.role,
             }),
           );
-          router.push("/advertiser");
+          router.replace(ADVERTISER_ROUTES.HOME.ROOT);
         } else if (response.data.role === ROLE.ADMIN) {
           dispatch(
             setCredentials({
@@ -58,7 +63,7 @@ const LoginForm = () => {
               role: response.data.role,
             }),
           );
-          router.push("/admin");
+          router.replace(ADMIN_ROUTES.HOME.ROOT);
         } else {
           dispatch(
             setCredentials({
@@ -66,7 +71,7 @@ const LoginForm = () => {
               role: response.data.role,
             }),
           );
-          router.push("/");
+          router.replace(USER_ROUTES.HOME.ROOT);
         }
       }
     } catch (error) {

@@ -4,19 +4,17 @@ import { otpVerificationSchema } from "@/features/auth/validators/otp-verificati
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { confrimRegistrationApi } from "@/features/auth/api/confrim-registration.api";
-import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { resendOtpApi } from "@/features/auth/api/resend-otp.api";
 import ShInput from "@/components/atoms/ShInput";
 import ShButton from "@/components/atoms/ShButton";
 import { Spinner } from "@/components/ui/spinner";
-import { verifyOtpResetPasswordApi } from "@/features/auth/api";
 import {
   useConfirmRegistrationMutation,
   useResendOtpMutation,
   useVerifyOtpResetPasswordMutation,
 } from "@/lib/service/authApi";
+import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
+import { ROLE } from "@/constants/role.enum";
 
 const OtpVerificationForm = () => {
   const [confirmRegistration, { isLoading }] = useConfirmRegistrationMutation();
@@ -79,10 +77,10 @@ const OtpVerificationForm = () => {
         const response = await confirmRegistration(body).unwrap();
         if (response.status === "success") {
           localStorage.clear();
-          if (response.data.role === "USER") {
-            router.push("/home");
-          } else if (response.data.role === "ADVERTISER") {
-            router.push("/advertiser");
+          if (response.data.role === ROLE.USER) {
+            router.replace(USER_ROUTES.HOME.ROOT);
+          } else if (response.data.role === ROLE.ADVERTISER) {
+            router.replace(ADVERTISER_ROUTES.HOME.ROOT);
           }
         }
       } else if (type === "reset") {

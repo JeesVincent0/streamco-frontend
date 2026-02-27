@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetPassword } from "@/features/auth/api";
 import { AxiosError } from "axios";
 import { resetPasswordSchema } from "@/features/auth/validators/reset-password-schema.validator";
+import { AUTH_ROUTES } from "@/constants/routers";
 
 const ResetPasswordForm = () => {
   const router = useRouter();
@@ -36,14 +37,9 @@ const ResetPasswordForm = () => {
     }
     try {
       const response = await verifyResetPassword(data);
-      console.log(response);
       if (response.status === "success") {
         localStorage.clear();
-        if (response.data.role === "USER") {
-          router.push("/home");
-        } else if (response.data.role === "ADVERTISER") {
-          router.push("/advertiser");
-        }
+        router.replace(AUTH_ROUTES.LOGIN.ROOT);
       }
     } catch (error) {
       const axiosResponse = error as AxiosError<{ message: string }>;

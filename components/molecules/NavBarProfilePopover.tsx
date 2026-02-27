@@ -12,11 +12,16 @@ import LinkButton from "../atoms/LinkButton";
 import { AUTH_ROUTES } from "@/constants/routers";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { Button } from "../ui/button";
 
 const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth,
   );
+  const handleLogout = () => {
+    try {
+    } catch (error) {}
+  };
   return (
     <>
       <PopoverContent align="end" className="w-55 gap-2.5 flex flex-col">
@@ -32,9 +37,10 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
               <CircleUserRound />
             </LinkButton>
             {/* Logout button */}
-            <LinkButton path={AUTH_ROUTES.LOGIN.ROOT} text={`logout`}>
+            <Button onClick={handleLogout}>
               <LogIn className="h-5" />
-            </LinkButton>
+              Logout
+            </Button>
           </>
         ) : (
           <>

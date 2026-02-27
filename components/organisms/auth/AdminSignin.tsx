@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import ShButton from "@/components/atoms/ShButton";
 import { loginSchema } from "@/features/auth/validators/login-schema.validator";
 import { adminSigninApi } from "@/features/auth/api";
+import { ADMIN_ROUTES } from "@/constants/routers";
 
 const AdminSignin = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -29,7 +30,7 @@ const AdminSignin = () => {
       const response = await adminSigninApi(data);
 
       if (response?.data.status === "success") {
-        router.push("/admin");
+        router.replace(ADMIN_ROUTES.HOME.ROOT);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{
