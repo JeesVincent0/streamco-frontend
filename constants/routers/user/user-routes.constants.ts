@@ -1,6 +1,6 @@
 const ROOT = "/home";
 
-export const HOME_ROUTES = {
+export const USER_ROUTES = {
   HOME: {
     ROOT: `${ROOT}`,
   },
