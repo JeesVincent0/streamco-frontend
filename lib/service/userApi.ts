@@ -13,13 +13,13 @@ export const userApi = createApi({
           displayName: string;
           email: string;
           avatarUrl: string;
-          role: ROLE;
         };
+        role: ROLE;
       },
       void
     >({
       query: () => ({
-        url: "/baseuser",
+        url: "/user/base",
         method: "GET",
       }),
     }),

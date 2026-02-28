@@ -1,12 +1,9 @@
-// /store/store.ts
-
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { authApi } from "./service";
 import { userApi } from "./service";
 import authReducer from "./slice/authSlice";
 
 import {
-  persistStore,
   persistReducer,
   FLUSH,
   REHYDRATE,
@@ -26,7 +23,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // only persist auth
+  whitelist: ["auth"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -41,8 +38,6 @@ export const makeStore = () =>
         },
       }).concat(authApi.middleware, userApi.middleware),
   });
-
-export const persistor = persistStore(makeStore());
 
 export type AppStore = ReturnType<typeof makeStore>;
 export type RootState = ReturnType<AppStore["getState"]>;
