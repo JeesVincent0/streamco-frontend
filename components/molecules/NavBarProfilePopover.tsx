@@ -17,6 +17,8 @@ import { useLogoutUserMutation } from "@/lib/service/authApi";
 import { Spinner } from "../ui/spinner";
 import { logout } from "@/lib/slice/authSlice";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Image from "next/image";
 
 const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
   const [logoutUser, { isLoading }] = useLogoutUserMutation();
@@ -32,11 +34,12 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
       localStorage.clear();
       dispatch(logout());
       router.replace(AUTH_ROUTES.LOGIN.ROOT);
+      toast.success("successfully logged out...");
     } catch {}
   };
   return (
     <>
-      <PopoverContent align="end" className="w-55 gap-2.5 flex flex-col">
+      <PopoverContent align="end" className="p-5 gap-2.5 flex flex-col">
         {isAuthenticated ? (
           <>
             {/* Profile button */}
@@ -46,7 +49,11 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
                 roleProps === ROLE.ADMIN ? `Admin` : `${user && user.email}`
               }
             >
-              <CircleUserRound />
+              {user?.avatarUrl ? (
+                <Image src={user.avatarUrl} alt="" width={30} height={30} className="rounded-2xl"/>
+              ) : (
+                <CircleUserRound />
+              )}
             </LinkButton>
             {/* Logout button */}
             <Button onClick={handleLogout}>
