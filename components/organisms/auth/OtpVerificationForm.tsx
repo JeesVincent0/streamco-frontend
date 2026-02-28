@@ -15,11 +15,15 @@ import {
 } from "@/lib/service/authApi";
 import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
 import { ROLE } from "@/constants/role.enum";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/lib/slice/authSlice";
 
 const OtpVerificationForm = () => {
   const [confirmRegistration, { isLoading }] = useConfirmRegistrationMutation();
   const [resendOtp] = useResendOtpMutation();
   const [verifyOtpResetPassword] = useVerifyOtpResetPasswordMutation();
+  const dispatch = useDispatch();
 
   const [ServerErrorMessage, SetServerErrorMessage] = useState("");
 
@@ -77,17 +81,27 @@ const OtpVerificationForm = () => {
         const response = await confirmRegistration(body).unwrap();
         if (response.status === "success") {
           localStorage.clear();
+          dispatch(
+            setCredentials({
+              user: response.data.user,
+              role: response.data.role,
+            }),
+          );
+
           if (response.data.role === ROLE.USER) {
             router.replace(USER_ROUTES.HOME.ROOT);
           } else if (response.data.role === ROLE.ADVERTISER) {
             router.replace(ADVERTISER_ROUTES.HOME.ROOT);
           }
+
+          toast.success("Account created successfully");
         }
       } else if (type === "reset") {
         const response = await verifyOtpResetPassword(body).unwrap();
         if (response.status === "success") {
           localStorage.clear();
-          router.push("/forgot-password/reset");
+          router.replace("/forgot-password/reset");
+          toast.success("OTP verified successfully");
         }
       }
     } catch (err: any) {
