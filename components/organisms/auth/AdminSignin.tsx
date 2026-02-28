@@ -11,6 +11,7 @@ import ShButton from "@/components/atoms/ShButton";
 import { loginSchema } from "@/features/auth/validators/login-schema.validator";
 import { adminSigninApi } from "@/features/auth/api";
 import { ADMIN_ROUTES } from "@/constants/routers";
+import { toast } from "sonner";
 
 const AdminSignin = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -31,6 +32,7 @@ const AdminSignin = () => {
 
       if (response?.data.status === "success") {
         router.replace(ADMIN_ROUTES.HOME.ROOT);
+        toast.success("Successfully logged in...");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{

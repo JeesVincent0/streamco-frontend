@@ -20,6 +20,7 @@ import {
   ADVERTISER_ROUTES,
   USER_ROUTES,
 } from "@/constants/routers";
+import { toast } from "sonner";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
@@ -73,6 +74,7 @@ const LoginForm = () => {
           );
           router.replace(USER_ROUTES.HOME.ROOT);
         }
+        toast.success("Successfully logged in...");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{

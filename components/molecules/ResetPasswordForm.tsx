@@ -11,6 +11,7 @@ import { verifyResetPassword } from "@/features/auth/api";
 import { AxiosError } from "axios";
 import { resetPasswordSchema } from "@/features/auth/validators/reset-password-schema.validator";
 import { AUTH_ROUTES } from "@/constants/routers";
+import { toast } from "sonner";
 
 const ResetPasswordForm = () => {
   const router = useRouter();
@@ -40,6 +41,7 @@ const ResetPasswordForm = () => {
       if (response.status === "success") {
         localStorage.clear();
         router.replace(AUTH_ROUTES.LOGIN.ROOT);
+        toast.success("Password changed successfully");
       }
     } catch (error) {
       const axiosResponse = error as AxiosError<{ message: string }>;
@@ -100,10 +102,10 @@ const ResetPasswordForm = () => {
                 {isSubmitting ? (
                   <>
                     <Spinner data-icon="inline-start" />
-                    Verifying...
+                    Resetting
                   </>
                 ) : (
-                  "Verify OTP"
+                  "Reset Password"
                 )}
               </ShButton>
             </div>

@@ -10,6 +10,7 @@ import ShButton from "../atoms/ShButton";
 import { Spinner } from "../ui/spinner";
 import { useRouter } from "next/navigation";
 import { generateOtpApi } from "@/features/auth/api/generate-otp.api";
+import { toast } from "sonner";
 
 const EmailVerificationForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -31,6 +32,7 @@ const EmailVerificationForm = () => {
         localStorage.setItem("otpResendAt", response.data.otpResendAt);
         localStorage.setItem("id", response.data.id);
         router.push("/otp-verification?type=reset");
+        toast.success("OTP send successfully");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;

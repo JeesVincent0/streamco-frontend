@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { advertiserSignupSchema } from "@/features/auth/validators/advertiser-schema.validator";
 import ShButton from "../atoms/ShButton";
 import ShInput from "../atoms/ShInput";
-import Link from "next/link";
 import { Spinner } from "../ui/spinner";
 import { AdvertiserFormData } from "@/features/auth/types/advertiser-signup.types";
 import { signupAdvertiser } from "@/features/auth/api/advertiser/signup-advertiser.api";
@@ -13,6 +12,7 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import LinkText from "../atoms/LinkText";
+import { toast } from "sonner";
 
 const AdvertiserSigupForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -32,6 +32,7 @@ const AdvertiserSigupForm = () => {
         localStorage.setItem("id", response.data?.id);
         localStorage.setItem("otpResendAt", response.data.otpResendAt);
         router.push("/otp-verification?type=email-verification");
+        toast.success("OTP send successfully");
       }
     } catch (error) {
       const exiosError = error as AxiosError<{ message: string }>;

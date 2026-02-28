@@ -26,6 +26,7 @@ import {
 } from "@/components/atoms/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 import LinkText from "@/components/atoms/LinkText";
+import { toast } from "sonner";
 
 /*
  *
@@ -67,6 +68,7 @@ const UserSignupForm = () => {
       localStorage.setItem("id", response.data?.id || "");
       localStorage.setItem("otpResendAt", response.data?.otpResendAt || "");
       router.push("/otp-verification?type=email-verification");
+      toast.success("OTP send successfully");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || "Signup failed";
