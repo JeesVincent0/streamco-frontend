@@ -1,12 +1,9 @@
 import SearchBar from "../molecules/SearchBar";
 import CreateChannelButton from "../molecules/CreateChannelButton";
-import { ToggleTheme } from "../molecules/ToggleTheme";
-import NotificationButton from "../molecules/NotificationButton";
-import { Popover, PopoverTrigger } from "../atoms/popover";
-import ProfileButton from "../molecules/ProfileButton";
 import { ROLE } from "@/constants/role.enum";
 import NavBarLogo from "../molecules/NavBarLogo";
-import NavBarProfilePopover from "../molecules/NavBarProfilePopover";
+import NavBarRightSectionActions from "../molecules/NavBarRightSectionActions";
+import GetBaseUser from "./auth/GetBaseUser";
 
 const NavBar = ({ role = ROLE.USER }) => {
   return (
@@ -34,17 +31,10 @@ const NavBar = ({ role = ROLE.USER }) => {
             </div>
           )}
 
+          <GetBaseUser />
+
           {/* Right Section - Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ToggleTheme />
-            <NotificationButton />
-            <Popover>
-              <PopoverTrigger asChild>
-                <ProfileButton />
-              </PopoverTrigger>
-              <NavBarProfilePopover roleProps={role} />
-            </Popover>
-          </div>
+          <NavBarRightSectionActions role={role} />
         </div>
       </nav>
     </>
