@@ -2,18 +2,19 @@
 
 import { useFetchBaseUserQuery } from "@/lib/service";
 import { setCredentials } from "@/lib/slice/authSlice";
+import { RootState } from "@/lib/store";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const GetBaseUser = () => {
   const { data, isLoading } = useFetchBaseUserQuery();
+  const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   useEffect(() => {
     if (data) {
-      console.log("Data: ", data);
-      dispatch(setCredentials({ user: data.user, role: data.role }));
+      dispatch(setCredentials({ user: data.data.user, role: data.data.role }));
     }
-  }, [data, isLoading, dispatch]);
+  }, [data, isLoading, user, dispatch]);
   return null;
 };
 

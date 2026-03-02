@@ -31,7 +31,6 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap();
-      localStorage.clear();
       dispatch(logout());
       router.replace(AUTH_ROUTES.LOGIN.ROOT);
       toast.success("successfully logged out...");
@@ -40,7 +39,7 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
   return (
     <>
       <PopoverContent align="end" className="p-5 gap-2.5 flex flex-col">
-        {isAuthenticated ? (
+        {isAuthenticated && user ? (
           <>
             {/* Profile button */}
             <LinkButton
@@ -50,7 +49,13 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
               }
             >
               {user?.avatarUrl ? (
-                <Image src={user.avatarUrl} alt="" width={30} height={30} className="rounded-2xl"/>
+                <Image
+                  src={user.avatarUrl}
+                  alt=""
+                  width={30}
+                  height={30}
+                  className="rounded-2xl"
+                />
               ) : (
                 <CircleUserRound />
               )}

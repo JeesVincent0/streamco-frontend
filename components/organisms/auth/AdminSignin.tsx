@@ -12,9 +12,12 @@ import { loginSchema } from "@/features/auth/validators/login-schema.validator";
 import { adminSigninApi } from "@/features/auth/api";
 import { ADMIN_ROUTES } from "@/constants/routers";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/lib/slice/authSlice";
 
 const AdminSignin = () => {
   const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useDispatch();
   const router = useRouter();
 
   // form validation function
@@ -31,6 +34,8 @@ const AdminSignin = () => {
       const response = await adminSigninApi(data);
 
       if (response?.data.status === "success") {
+        const data = response.data.data;
+        dispatch(setCredentials({ user: data.user, role: data.role }));
         router.replace(ADMIN_ROUTES.HOME.ROOT);
         toast.success("Successfully logged in...");
       }

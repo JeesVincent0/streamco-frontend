@@ -8,13 +8,17 @@ export const userApi = createApi({
   endpoints: (builder) => ({
     fetchBaseUser: builder.query<
       {
-        user: {
-          id: string;
-          displayName: string;
-          email: string;
-          avatarUrl: string;
+        data: {
+          status: string;
+          message: string;
+          user: {
+            id: string;
+            displayName: string;
+            email: string;
+            avatarUrl: string;
+          };
+          role: ROLE;
         };
-        role: ROLE;
       },
       void
     >({

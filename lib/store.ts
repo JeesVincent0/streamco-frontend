@@ -3,42 +3,20 @@ import { authApi } from "./service";
 import { userApi } from "./service";
 import authReducer from "./slice/authSlice";
 
-import {
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from "redux-persist";
-import storage from "redux-persist/lib/storage";
-
 const rootReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   auth: authReducer,
 });
 
-const persistConfig = {
-  key: "root",
-  storage,
-  whitelist: ["auth"],
-};
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      userApi.middleware
+    ),
+});
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-export const makeStore = () =>
-  configureStore({
-    reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: {
-          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-      }).concat(authApi.middleware, userApi.middleware),
-  });
-
-export type AppStore = ReturnType<typeof makeStore>;
-export type RootState = ReturnType<AppStore["getState"]>;
-export type AppDispatch = AppStore["dispatch"];
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

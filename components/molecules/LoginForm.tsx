@@ -36,6 +36,11 @@ const LoginForm = () => {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
+  // const handleVerifyUser = async (data: {
+  //   email: string;
+  //   password: string;
+  // }) => {};
+
   const handleOnSubmit = async (data: { email: string; password: string }) => {
     try {
       // Clearing error message and call sigin api with form data.
@@ -147,16 +152,6 @@ const LoginForm = () => {
           </ShButton>
         </div>
       </div>
-
-      {/* Redirection link for email verification */}
-      {!isVerified && (
-        <Link
-          className="text-sm text-red-400 hover:text-white/80 hover:underline"
-          href={`/verify-email`}
-        >
-          Verify Email?
-        </Link>
-      )}
 
       {/* Redirection link for create new account */}
       <LinkText path={"/signup"} text={`Create New Account?`} />
