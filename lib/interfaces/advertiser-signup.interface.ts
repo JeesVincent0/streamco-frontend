@@ -1,9 +1,8 @@
-export interface UserSingUp {
+export interface AdvertiserSignup{
   firstName: string;
   lastName: string;
+  companyName: string;
   email: string;
   password: string;
   confirmPassword: string;
-  gender: string;
-  dob: string;
 }

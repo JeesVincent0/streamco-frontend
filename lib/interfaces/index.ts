@@ -2,3 +2,10 @@ export * from "./jwt-payload.interface";
 export * from "./confirm-registration-interface";
 export * from "./resend-otp.interface";
 export * from "./verify-otp-reset-password.interface";
+export * from "./base-user.interface";
+export * from "./signin.interface";
+export * from "./advertiser-signup.interface";
+export * from "./user-signup.req.interface";
+export * from "./user-signup-res.interface";
+export * from "./generate-otp-res.interface";
+export * from "./verify-otp-reset-password.interface"

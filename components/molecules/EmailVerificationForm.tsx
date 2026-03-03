@@ -9,17 +9,18 @@ import ShInput from "../atoms/ShInput";
 import ShButton from "../atoms/ShButton";
 import { Spinner } from "../ui/spinner";
 import { useRouter } from "next/navigation";
-import { generateOtpApi } from "@/features/auth/api/generate-otp.api";
 import { toast } from "sonner";
+import { useGenerateOtpApiMutation } from "@/lib/service";
 
 const EmailVerificationForm = () => {
+  const [generateOtpApi, { isLoading }] = useGenerateOtpApiMutation();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(emailVerificationSchema) });
 
   const handleGoBack = () => router.back();
@@ -27,10 +28,10 @@ const EmailVerificationForm = () => {
   const handleOnSubmit = async (data: { email: string; purpose?: string }) => {
     try {
       data.purpose = "reset_password";
-      const response = await generateOtpApi(data);
+      const response = await generateOtpApi(data).unwrap();
       if (response.status === "success") {
-        localStorage.setItem("otpResendAt", response.data.otpResendAt);
-        localStorage.setItem("id", response.data.id);
+        localStorage.setItem("otpResendAt", response.data?.otpResendAt);
+        localStorage.setItem("id", response.data?.id);
         router.push("/otp-verification?type=reset");
         toast.success("OTP send successfully");
       }
@@ -67,8 +68,8 @@ const EmailVerificationForm = () => {
       />
 
       <div className="w-full mt-1">
-        <ShButton disabled={isSubmitting}>
-          {isSubmitting ? (
+        <ShButton disabled={isLoading}>
+          {isLoading ? (
             <>
               <Spinner data-icon="inline-start" />
               Generating...

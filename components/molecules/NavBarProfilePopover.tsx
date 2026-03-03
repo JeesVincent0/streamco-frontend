@@ -9,7 +9,7 @@ import {
 import { PopoverContent } from "../atoms/popover";
 import { ROLE } from "@/constants/role.enum";
 import LinkButton from "../atoms/LinkButton";
-import { AUTH_ROUTES } from "@/constants/routers";
+import { ADMIN_ROUTES, AUTH_ROUTES } from "@/constants/routers";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { Button } from "../ui/button";
@@ -24,15 +24,20 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
   const [logoutUser, { isLoading }] = useLogoutUserMutation();
   const dispatch = useDispatch();
   const router = useRouter();
-  const { isAuthenticated, user } = useSelector(
+  const { isAuthenticated, user, role } = useSelector(
     (state: RootState) => state.auth,
   );
 
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap();
-      dispatch(logout());
-      router.replace(AUTH_ROUTES.LOGIN.ROOT);
+      if (role === ROLE.ADMIN) {
+        dispatch(logout());
+        router.replace(ADMIN_ROUTES.SIGNIN.ROOT);
+      } else {
+        dispatch(logout());
+        router.replace(AUTH_ROUTES.LOGIN.ROOT);
+      }
       toast.success("successfully logged out...");
     } catch {}
   };
@@ -45,7 +50,9 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
             <LinkButton
               path={AUTH_ROUTES.SIGNUP.ROOT}
               text={
-                roleProps === ROLE.ADMIN ? `Admin` : `${user && user.email}`
+                roleProps === ROLE.ADMIN
+                  ? `${user && user.email}`
+                  : `${user && user.email}`
               }
             >
               {user?.avatarUrl ? (

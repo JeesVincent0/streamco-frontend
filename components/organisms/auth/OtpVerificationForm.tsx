@@ -21,7 +21,7 @@ import { setCredentials } from "@/lib/slice/authSlice";
 
 const OtpVerificationForm = () => {
   const [confirmRegistration, { isLoading }] = useConfirmRegistrationMutation();
-  const [resendOtp] = useResendOtpMutation();
+  const [resendOtp, { isLoading: isResedning }] = useResendOtpMutation();
   const [verifyOtpResetPassword] = useVerifyOtpResetPasswordMutation();
   const dispatch = useDispatch();
 
@@ -199,7 +199,13 @@ const OtpVerificationForm = () => {
                   : "opacity-50 cursor-not-allowed"
               }`}
             >
-              Resend OTP?
+              {isResedning ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                </>
+              ) : (
+                `Resend OTP?`
+              )}
             </p>
           </div>
 

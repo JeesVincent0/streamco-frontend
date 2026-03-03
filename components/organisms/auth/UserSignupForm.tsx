@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { AxiosError } from "axios";
 import { Controller, useForm } from "react-hook-form";
@@ -8,9 +7,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import GoogleSignupButton from "@/components/molecules/GoogleSingupButton";
-
-import { signupUser } from "@/features/auth/api/user/signup-user.api";
-import { UserSingUp } from "@/features/auth/types/user-signup.type";
 import { signupSchema } from "@/features/auth/validators/signup-schema.validator";
 import ShInput from "@/components/atoms/ShInput";
 import ShButton from "@/components/atoms/ShButton";
@@ -27,6 +23,8 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import LinkText from "@/components/atoms/LinkText";
 import { toast } from "sonner";
+import { useSignupUserMutation } from "@/lib/service";
+import { UserSingupRequest } from "@/lib/interfaces";
 
 /*
  *
@@ -41,6 +39,7 @@ import { toast } from "sonner";
  */
 
 const UserSignupForm = () => {
+  const [signupUser, { isLoading }] = useSignupUserMutation();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
   const router = useRouter();
 
@@ -48,30 +47,30 @@ const UserSignupForm = () => {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
   // Handle form submission
-  const onSubmit = async (data: UserSingUp) => {
+  const onSubmit = async (data: UserSingupRequest) => {
     try {
       // Clear previous server error message
       setServerErrorMessage("");
 
       // Make API call to signup user
-      const response = await signupUser(data);
-      if (response.status !== "success") {
-        setServerErrorMessage(response.message || "Signup failed");
+      const response = await signupUser(data).unwrap();
+      if (response?.status !== "success") {
+        setServerErrorMessage(response?.message || "Signup failed");
         return;
       }
 
       // Store user ID in localStorage and navigate to OTP verification page
-      localStorage.setItem("id", response.data?.id || "");
+      localStorage.setItem("id", response?.data?.id || "");
       localStorage.setItem("otpResendAt", response.data?.otpResendAt || "");
       router.push("/otp-verification?type=email-verification");
       toast.success("OTP send successfully");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      const message = axiosError.response?.data?.message || "Signup failed";
+      const message = axiosError?.data?.message || "Signup failed";
       setServerErrorMessage(message);
     }
   };
@@ -203,8 +202,8 @@ const UserSignupForm = () => {
               htmlFor="input-confirm-password"
             />
 
-            <ShButton classValue={`mt-8`} disabled={isSubmitting}>
-              {isSubmitting ? (
+            <ShButton classValue={`mt-8`} disabled={isLoading}>
+              {isLoading ? (
                 <>
                   <Spinner data-icon="inline-start" />
                   Submitting...

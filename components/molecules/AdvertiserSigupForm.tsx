@@ -6,37 +6,41 @@ import { advertiserSignupSchema } from "@/features/auth/validators/advertiser-sc
 import ShButton from "../atoms/ShButton";
 import ShInput from "../atoms/ShInput";
 import { Spinner } from "../ui/spinner";
-import { AdvertiserFormData } from "@/features/auth/types/advertiser-signup.types";
-import { signupAdvertiser } from "@/features/auth/api/advertiser/signup-advertiser.api";
 import { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import LinkText from "../atoms/LinkText";
 import { toast } from "sonner";
+import { useSignupAdvertiserMutation } from "@/lib/service";
+import { AdvertiserSignup } from "@/lib/interfaces";
 
 const AdvertiserSigupForm = () => {
+  const [signupAdvertiser, { isLoading }] = useSignupAdvertiserMutation();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(advertiserSignupSchema) });
 
-  const handleOnSubmit = async (data: AdvertiserFormData) => {
+  const handleOnSubmit = async (data: AdvertiserSignup) => {
     try {
       setErrorMessage("");
-      const response = await signupAdvertiser(data);
+      const response = await signupAdvertiser(data).unwrap();
 
-      if (response.status === "success") {
-        localStorage.setItem("id", response.data?.id);
-        localStorage.setItem("otpResendAt", response.data.otpResendAt);
+      if (response?.status === "success") {
+        localStorage.setItem("id", response?.data.id);
+        localStorage.setItem(
+          "otpResendAt",
+          response.data?.otpResendAt.toString(),
+        );
         router.push("/otp-verification?type=email-verification");
         toast.success("OTP send successfully");
       }
     } catch (error) {
       const exiosError = error as AxiosError<{ message: string }>;
-      const data = exiosError.response?.data;
+      const data = exiosError.data;
       setErrorMessage(
         data?.message || "somthing wend wrong, try again after sometimes",
       );
@@ -121,8 +125,8 @@ const AdvertiserSigupForm = () => {
       </div>
 
       <div className="w-full mt-2">
-        <ShButton disabled={isSubmitting}>
-          {isSubmitting ? (
+        <ShButton disabled={isLoading}>
+          {isLoading ? (
             <>
               <Spinner data-icon="inline-start" />
               Submitting...

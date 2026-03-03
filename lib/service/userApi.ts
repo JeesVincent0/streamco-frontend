@@ -1,27 +1,12 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
-import { ROLE } from "@/constants/role.enum";
+import { BaseUser } from "../interfaces/base-user.interface";
 
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: axiosBaseQuery(),
   endpoints: (builder) => ({
-    fetchBaseUser: builder.query<
-      {
-        data: {
-          status: string;
-          message: string;
-          user: {
-            id: string;
-            displayName: string;
-            email: string;
-            avatarUrl: string;
-          };
-          role: ROLE;
-        };
-      },
-      void
-    >({
+    fetchBaseUser: builder.query<BaseUser, void>({
       query: () => ({
         url: "/user/base",
         method: "GET",

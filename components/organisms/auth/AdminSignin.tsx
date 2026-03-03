@@ -9,13 +9,15 @@ import ShInput from "@/components/atoms/ShInput";
 import { Spinner } from "@/components/ui/spinner";
 import ShButton from "@/components/atoms/ShButton";
 import { loginSchema } from "@/features/auth/validators/login-schema.validator";
-import { adminSigninApi } from "@/features/auth/api";
 import { ADMIN_ROUTES } from "@/constants/routers";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/slice/authSlice";
+import { useAdminSigninMutation } from "@/lib/service";
+import { Signin } from "@/lib/interfaces";
 
 const AdminSignin = () => {
+  const [adminSignin, { isLoading }] = useAdminSigninMutation();
   const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
   const router = useRouter();
@@ -24,27 +26,29 @@ const AdminSignin = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
-  const handleOnSubmit = async (data: { email: string; password: string }) => {
+  const handleOnSubmit = async (data: Signin) => {
     try {
       // Clearing error message and call sigin api with form data.
       setErrorMessage("");
-      const response = await adminSigninApi(data);
+      const responseData = await adminSignin(data).unwrap();
 
-      if (response?.data.status === "success") {
-        const data = response.data.data;
+      if (responseData?.status === "success") {
+        const data = responseData.data;
         dispatch(setCredentials({ user: data.user, role: data.role }));
         router.replace(ADMIN_ROUTES.HOME.ROOT);
         toast.success("Successfully logged in...");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{
-        message: string;
-        data: any;
+        data: {
+          data: null;
+          message: string;
+        };
       }>;
-      const data = axiosError.response?.data;
+      const data = axiosError?.data;
 
       // setting server error
       setErrorMessage(
@@ -92,8 +96,8 @@ const AdminSignin = () => {
 
         {/* submit button */}
         <div className="mt-2">
-          <ShButton disabled={isSubmitting}>
-            {isSubmitting ? (
+          <ShButton disabled={isLoading}>
+            {isLoading ? (
               <>
                 <Spinner data-icon="inline-start" />
                 Submitting...

@@ -1,8 +1,9 @@
-export type AdvertiserFormData = {
+export interface UserSingupRequest {
   firstName: string;
   lastName: string;
-  companyName: string;
   email: string;
   password: string;
   confirmPassword: string;
+  gender: string;
+  dob: string;
 }

@@ -9,8 +9,6 @@ import ShInput from "../atoms/ShInput";
 import { Spinner } from "../ui/spinner";
 import ShButton from "../atoms/ShButton";
 import { loginSchema } from "@/features/auth/validators/login-schema.validator";
-import Link from "next/link";
-import { userSigninApi } from "@/features/auth/api/login.api";
 import LinkText from "../atoms/LinkText";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/slice/authSlice";
@@ -21,60 +19,52 @@ import {
   USER_ROUTES,
 } from "@/constants/routers";
 import { toast } from "sonner";
+import { useUserSigninApiMutation } from "@/lib/service";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
-
+  const [userSigninApi, { isLoading, isError }] = useUserSigninApiMutation();
   const [errorMessage, setErrorMessage] = useState("");
-  const [isVerified, setIsVerified] = useState(true);
   const router = useRouter();
 
   // form validation function
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
-  // const handleVerifyUser = async (data: {
-  //   email: string;
-  //   password: string;
-  // }) => {};
-
-  const handleOnSubmit = async (data: { email: string; password: string }) => {
+  const handleOnSubmit = async (dataa: { email: string; password: string }) => {
     try {
       // Clearing error message and call sigin api with form data.
-      setIsVerified(true);
       setErrorMessage("");
-      const response = await userSigninApi(data);
+      const response = await userSigninApi(dataa).unwrap();
+      const data = response;
 
       // Role based redirection after successfull signin
-      if (response?.status === "success") {
-        if (response.data.role === ROLE.ADVERTISER) {
+      if (data?.status === "success") {
+        if (!data) throw new Error("No data");
+        if (data.data.role === ROLE.ADVERTISER) {
           dispatch(
             setCredentials({
-              user: response.data.user,
-              role: response.data.role,
+              user: data.data.user,
+              role: data.data.role,
             }),
           );
           router.replace(ADVERTISER_ROUTES.HOME.ROOT);
-        } else if (response.data.role === ROLE.ADMIN) {
+        } else if (data.data.role === ROLE.ADMIN) {
           dispatch(
             setCredentials({
-              user: {
-                id: response.data.id,
-                name: "Admin",
-                email: "admin@gmail.com",
-              },
-              role: response.data.role,
+              user: data.data.user,
+              role: data.data.role,
             }),
           );
           router.replace(ADMIN_ROUTES.HOME.ROOT);
         } else {
           dispatch(
             setCredentials({
-              user: response.data.user,
-              role: response.data.role,
+              user: data.data.user,
+              role: data.data.role,
             }),
           );
           router.replace(USER_ROUTES.HOME.ROOT);
@@ -82,21 +72,18 @@ const LoginForm = () => {
         toast.success("Successfully logged in...");
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{
-        message: string;
-        data: any;
-      }>;
-      const data = axiosError.response?.data;
+      console.log("this is error: ", error.data.message);
+      const data = error.data;
 
       if (data?.data?.isVerified === false) {
-        setIsVerified(false);
-        setErrorMessage(data?.message || "User not verified");
+        setErrorMessage(data?.data?.message || "User not verified");
         return;
       }
 
       // setting server error
       setErrorMessage(
-        data?.message || "Something wend wrong, try again after sometimes",
+        data?.message ||
+          "Something wend wrong, try again after sometimes",
       );
     }
   };
@@ -140,8 +127,8 @@ const LoginForm = () => {
 
         {/* submit button */}
         <div className="mt-2">
-          <ShButton disabled={isSubmitting}>
-            {isSubmitting ? (
+          <ShButton disabled={isLoading}>
+            {isLoading ? (
               <>
                 <Spinner data-icon="inline-start" />
                 Submitting...

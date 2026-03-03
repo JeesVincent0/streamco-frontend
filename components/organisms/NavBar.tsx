@@ -31,11 +31,10 @@ const NavBar = ({ role = ROLE.USER }) => {
             </div>
           )}
 
-          <GetBaseUser />
-
           {/* Right Section - Actions */}
           <NavBarRightSectionActions role={role} />
         </div>
+        <GetBaseUser />
       </nav>
     </>
   );

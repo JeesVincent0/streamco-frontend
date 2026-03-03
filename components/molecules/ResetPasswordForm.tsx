@@ -7,20 +7,21 @@ import ShButton from "../atoms/ShButton";
 import { Spinner } from "../ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { verifyResetPassword } from "@/features/auth/api";
 import { AxiosError } from "axios";
 import { resetPasswordSchema } from "@/features/auth/validators/reset-password-schema.validator";
 import { AUTH_ROUTES } from "@/constants/routers";
 import { toast } from "sonner";
+import { useResetPasswordMutation } from "@/lib/service";
 
 const ResetPasswordForm = () => {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(resetPasswordSchema) });
 
   const [isAllowed, setIsAllowed] = useState(() => {
@@ -37,7 +38,7 @@ const ResetPasswordForm = () => {
       setIsAllowed(false);
     }
     try {
-      const response = await verifyResetPassword(data);
+      const response = await resetPassword(data).unwrap();
       if (response.status === "success") {
         localStorage.clear();
         router.replace(AUTH_ROUTES.LOGIN.ROOT);
@@ -98,8 +99,8 @@ const ResetPasswordForm = () => {
             />
 
             <div className="w-full mt-2">
-              <ShButton disabled={isSubmitting}>
-                {isSubmitting ? (
+              <ShButton disabled={isLoading}>
+                {isLoading ? (
                   <>
                     <Spinner data-icon="inline-start" />
                     Resetting
