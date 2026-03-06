@@ -1,0 +1,9 @@
+const Users = () => {
+  return (
+    <div className="items-center mt-10 flex flex-col h-full">
+      Comming soon...
+    </div>
+  );
+};
+
+export default Users;

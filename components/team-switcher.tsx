@@ -21,7 +21,7 @@ export function TeamSwitcher({
       <div className="pl-2 text-sidebar-primary-foreground flex aspect-square size-6 items-center justify-center rounded-lg">
         {children}
       </div>
-      <div className="font-bold">{text}</div>
+      <div className="font-medium">{text}</div>
     </SidebarMenuButton>
   );
 }
