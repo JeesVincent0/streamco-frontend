@@ -37,7 +37,7 @@ const EmailVerificationForm = () => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      const data = axiosError.response?.data;
+      const data = axiosError?.data;
 
       setErrorMessage(data?.message || "Somthing wend wrong");
     }

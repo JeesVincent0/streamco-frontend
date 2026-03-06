@@ -72,7 +72,6 @@ const LoginForm = () => {
         toast.success("Successfully logged in...");
       }
     } catch (error) {
-      console.log("this is error: ", error.data.message);
       const data = error.data;
 
       if (data?.data?.isVerified === false) {
