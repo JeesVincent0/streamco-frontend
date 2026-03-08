@@ -53,7 +53,7 @@ const LeftSideMenu = () => {
     },
   ];
   return (
-    <SidebarMenu className="gap-2 pl-2">
+    <SidebarMenu className="gap-2">
       {sideButtons.map((item) => (
         <SidebarMenuItem key={item.name}>
           <Link href={item.path}>

@@ -10,11 +10,16 @@ const layout = ({ children }: { children: React.ReactNode }) => {
       {/* Nav Bar */}
       <NavBar role={ROLE.ADMIN} />
 
-      <div className="pt-20">
+      <div className="pt-17">
+        {/* left side bar button for collapse / expand */}
         <SidebarProvider className={``}>
+
+          {/* left side bar */}
           <AppSideBarAdmin
             className={"top-16 h-[calc(100vh-4rem)] bg-background"}
           />
+
+          {/* main content */}
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </div>
