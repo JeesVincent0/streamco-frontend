@@ -10,11 +10,11 @@ import {
 import { useSearchParams } from "next/navigation";
 
 /*
-* A resuable pagination component that can be used across the application. 
-* It takes in a starting URL and a limit for the number of items per page. 
-* It uses the current page from the search parameters to calculate the next 
-* and previous page URLs.
-*/
+ * A resuable pagination component that can be used across the application.
+ * It takes in a starting URL and a limit for the number of items per page.
+ * It uses the current page from the search parameters to calculate the next
+ * and previous page URLs.
+ */
 
 const PaginationMolecule = ({
   startingUrl,
@@ -25,6 +25,12 @@ const PaginationMolecule = ({
 }) => {
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
+  const currentLimit = Number(searchParams.get("limit")) || limit;
+  const role = searchParams.get("role") || "all";
+  const status = searchParams.get("status") || "all";
+  const isVerified = searchParams.get("isVerified") || "all";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const order = searchParams.get("order") || "asc";
 
   const nextPage = currentPage + 1;
   const previousPage = Math.max(currentPage - 1, 1);
@@ -34,12 +40,12 @@ const PaginationMolecule = ({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={`${startingUrl}?page=${previousPage}&limit=${limit}`}
+            href={`${startingUrl}?page=${previousPage}&limit=${currentLimit}&role=${role}&status=${status}&isVerified=${isVerified}&sortBy=${sortBy}&order=${order}`}
           />
         </PaginationItem>
         <PaginationItem>
           <PaginationNext
-            href={`${startingUrl}?page=${nextPage}&limit=${limit}`}
+            href={`${startingUrl}?page=${nextPage}&limit=${currentLimit}&role=${role}&status=${status}&isVerified=${isVerified}&sortBy=${sortBy}&order=${order}`}
           />
         </PaginationItem>
       </PaginationContent>

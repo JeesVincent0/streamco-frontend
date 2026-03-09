@@ -13,8 +13,17 @@ export const ADMIN_ROUTES = {
   USERS: {
     ROOT: `${ROOT}/users`,
     DETAILS: (userId: string) => `${ROOT}/users/${userId}`,
-    QUERY: (page = 1, limit = 10) =>
-      `${ROOT}/users?page=${page}&limit=${limit}`,
+    QUERY: (
+      page = 1,
+      limit = 10,
+      sortBy: "dispalyName" | "email" = "dispalyName",
+      order: "asc" | "desc" = "asc",
+      role: "ADVERTISER" | "PUBLISHER" | "ADMIN" | "" = "",
+      status: "SUSPENDED" | "ACTIVE" | "DELETED" | "" = "",
+      search: string = "",
+      isVerified?: boolean,
+    ) =>
+      `${ROOT}/users?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&role=${role}&isVerified=${isVerified}&status=${status}&search=${search}`,
   },
   ADVERTISERS: {
     ROOT: `${ROOT}/advertisers`,

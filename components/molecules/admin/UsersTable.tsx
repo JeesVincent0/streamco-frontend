@@ -21,15 +21,32 @@ import { ADMIN_ROUTES } from "@/constants/routers/admin/admin-routes.constants";
 import { useGetUsersQuery } from "@/lib/service/adminApi";
 import { MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 const UsersTable = () => {
   const tableHeadings = ["Name", "Email", "Status", "isVerified", "Role"];
 
-  const { data, isLoading } = useGetUsersQuery({ page: 1, limit: 10 });
+  const searchParams = useSearchParams();
+
+  const queryArgs = useMemo(() => {
+    return {
+      page: Number(searchParams.get("page")) || 1,
+      limit: Number(searchParams.get("limit")) || 10,
+      sortBy: searchParams.get("sortBy") || "displayName",
+      order: searchParams.get("order") || "asc",
+      role: searchParams.get("role") || "",
+      status: searchParams.get("status") || "",
+      search: searchParams.get("search") || "",
+      isVerified: searchParams.get("isVerified"),
+    };
+  }, [searchParams]);
+
+  const { data, isLoading, isFetching } = useGetUsersQuery(queryArgs);
 
   const users = data?.data?.users ?? [];
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return <TableLoadingSkelton />;
   }
 
