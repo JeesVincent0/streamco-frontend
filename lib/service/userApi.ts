@@ -7,9 +7,11 @@ export const userApi = createApi({
   baseQuery: axiosBaseQuery(),
   endpoints: (builder) => ({
     fetchBaseUser: builder.query<BaseUser, void>({
-      query: () => ({
+      query: (params) => ({
         url: "/user/base",
         method: "GET",
+        data: null,
+        params,
       }),
     }),
   }),

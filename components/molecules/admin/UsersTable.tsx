@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/atoms/dropdown-menu";
+import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
 import {
   Table,
   TableBody,
@@ -15,141 +18,21 @@ import {
 } from "@/components/atoms/table";
 import { Button } from "@/components/ui/button";
 import { ADMIN_ROUTES } from "@/constants/routers/admin/admin-routes.constants";
+import { useGetUsersQuery } from "@/lib/service/adminApi";
 import { MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
 
 const UsersTable = () => {
   const tableHeadings = ["Name", "Email", "Status", "isVerified", "Role"];
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      status: "SUSPENDED",
-      verified: false,
-      role: "User",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      status: "DELETED",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 4,
-      name: "Alice Williams",
-      email: "alice.williams@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      status: "SUSPENDED",
-      verified: false,
-      role: "User",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      status: "DELETED",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 4,
-      name: "Alice Williams",
-      email: "alice.williams@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      status: "SUSPENDED",
-      verified: false,
-      role: "User",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      status: "DELETED",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 4,
-      name: "Alice Williams",
-      email: "alice.williams@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      status: "SUSPENDED",
-      verified: false,
-      role: "User",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      status: "DELETED",
-      verified: true,
-      role: "User",
-    },
-    {
-      id: 4,
-      name: "Alice Williams",
-      email: "alice.williams@example.com",
-      status: "ACTIVE",
-      verified: true,
-      role: "User",
-    },
-  ];
+
+  const { data, isLoading } = useGetUsersQuery({ page: 1, limit: 10 });
+
+  const users = data?.data?.users ?? [];
+
+  if (isLoading) {
+    return <TableLoadingSkelton />;
+  }
+
   return (
     <Table>
       <TableHeader className="dark:bg-white/12 bg-black/12">
@@ -160,82 +43,79 @@ const UsersTable = () => {
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
+
       <TableBody className="dark:bg-white/5 bg-black/5">
-        {users.map((user) => (
-          <TableRow key={user.id}>
-            <TableCell className="font-medium">{user.name}</TableCell>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.status}</TableCell>
-            <TableCell>{user.verified ? "Yes" : "No"}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-8">
-                    <MoreVerticalIcon />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
-                    <DropdownMenuItem className="hover:cursor-pointer">
-                      View
-                    </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuSeparator />
-                  {user.status === "DELETED" && (
-                    <>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        SUSPEND
+        {users.map(
+          (user: {
+            id: string;
+            displayName: string;
+            email: string;
+            status: string;
+            verified: boolean;
+            role: string;
+          }) => (
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">{user.displayName}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.status}</TableCell>
+              <TableCell>{user.verified ? "Yes" : "No"}</TableCell>
+              <TableCell>{user.role}</TableCell>
+
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="size-8">
+                      <MoreVerticalIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end">
+                    <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
+                      <DropdownMenuItem className="cursor-pointer">
+                        View
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        ACTIVATE
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {user.status === "ACTIVE" && (
-                    <>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        SUSPEND
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        DELETE
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {user.status === "SUSPENDED" && (
-                    <>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        ACTIVATE
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        variant="destructive"
-                      >
-                        DELETE
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
+                    </Link>
+
+                    <DropdownMenuSeparator />
+
+                    {user.status === "DELETED" && (
+                      <>
+                        <DropdownMenuItem variant="destructive">
+                          SUSPEND
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive">
+                          ACTIVATE
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    {user.status === "ACTIVE" && (
+                      <>
+                        <DropdownMenuItem variant="destructive">
+                          SUSPEND
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive">
+                          DELETE
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    {user.status === "SUSPENDED" && (
+                      <>
+                        <DropdownMenuItem variant="destructive">
+                          ACTIVATE
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive">
+                          DELETE
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ),
+        )}
       </TableBody>
     </Table>
   );

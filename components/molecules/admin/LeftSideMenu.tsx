@@ -28,7 +28,7 @@ const LeftSideMenu = () => {
     },
     {
       name: "Users",
-      path: ADMIN_ROUTES.USERS.ROOT,
+      path: ADMIN_ROUTES.USERS.QUERY(),
       icon: <Users className={sideButtonRootClass} />,
     },
     {
@@ -59,7 +59,7 @@ const LeftSideMenu = () => {
           <Link href={item.path}>
             <SidebarMenuButton
               className={`hover:cursor-pointer ${
-                pathName === item.path
+                pathName.startsWith(item.path.split("?")[0])
                   ? `bg-[#FF7701] hover:bg-[#d86500e6]`
                   : `dark:bg-white/10 dark:hover:bg-white/5 bg-black/10 hover:bg-black/5`
               }`}

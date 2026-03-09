@@ -15,12 +15,15 @@ export const axiosBaseQuery =
   > =>
   async ({ url, method, data, params }, api) => {
     try {
+      console.log("API Request: ", { url, method, data, params });
       const result = await axiosIntance({
         url,
         method,
         data,
         params,
       });
+
+      console.log("API Response: ", result.data);
 
       return { data: result.data };
     } catch (axiosError: any) {

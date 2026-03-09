@@ -12,6 +12,9 @@ export const ADMIN_ROUTES = {
   },
   USERS: {
     ROOT: `${ROOT}/users`,
+    DETAILS: (userId: string) => `${ROOT}/users/${userId}`,
+    QUERY: (page = 1, limit = 10) =>
+      `${ROOT}/users?page=${page}&limit=${limit}`,
   },
   ADVERTISERS: {
     ROOT: `${ROOT}/advertisers`,
