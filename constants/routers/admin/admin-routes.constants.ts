@@ -16,8 +16,8 @@ export const ADMIN_ROUTES = {
     QUERY: (
       page = 1,
       limit = 10,
-      sortBy: "dispalyName" | "email" = "dispalyName",
-      order: "asc" | "desc" = "asc",
+      sortBy: "displayName" | "email" | "createdAt" = "createdAt",
+      order: "asc" | "desc" = "desc",
       role: "ADVERTISER" | "PUBLISHER" | "ADMIN" | "" = "",
       status: "SUSPENDED" | "ACTIVE" | "DELETED" | "" = "",
       search: string = "",

@@ -4,27 +4,25 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { SearchIcon } from "lucide-react";
 import { ButtonGroup } from "../atoms/button-group";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ADMIN_ROUTES } from "@/constants/routers";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const SearchBar = () => {
-  const [searchKey, setSearchKey] = useState("");
-
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const page = Number(searchParams.get("page")) || 1;
-  const limit = Number(searchParams.get("limit")) || 10;
-  const sortBy = searchParams.get("sortBy") || "displayName";
-  const order = searchParams.get("order") || "asc";
-  const role = searchParams.get("role") || "";
-  const status = searchParams.get("status") || "";
-  const isVerified = searchParams.get("isVerified");
+  const search = searchParams.get("search") || "";
+  const [searchKey, setSearchKey] = useState(search);
+
+  // sync URL → input state
+  useEffect(() => {
+    setSearchKey(search);
+  }, [search]);
 
   const handleSearch = () => {
     router.push(
-      `${ADMIN_ROUTES.USERS.ROOT}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&role=${role}&status=${status}&isVerified=${isVerified}&search=${searchKey}`,
+      `${ADMIN_ROUTES.USERS.ROOT}?page=${1}&limit=${10}&sortBy=${"createdAt"}&order=${"desc"}&role=${"all"}&status=${"all"}&isVerified=${"all"}&search=${searchKey}`,
     );
   };
 

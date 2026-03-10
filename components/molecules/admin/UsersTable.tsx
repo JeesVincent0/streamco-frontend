@@ -33,8 +33,8 @@ const UsersTable = () => {
     return {
       page: Number(searchParams.get("page")) || 1,
       limit: Number(searchParams.get("limit")) || 10,
-      sortBy: searchParams.get("sortBy") || "displayName",
-      order: searchParams.get("order") || "asc",
+      sortBy: searchParams.get("sortBy") || "createdAt",
+      order: searchParams.get("order") || "desc",
       role: searchParams.get("role") || "",
       status: searchParams.get("status") || "",
       search: searchParams.get("search") || "",
@@ -48,6 +48,14 @@ const UsersTable = () => {
 
   if (isLoading || isFetching) {
     return <TableLoadingSkelton />;
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10">
+        <p className="text-muted-foreground">No users found.</p>
+      </div>
+    );
   }
 
   return (
