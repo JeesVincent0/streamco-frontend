@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import Loading from "../common/LoadingPage";
 
 // ─── Filter options ───────────────────────────────────────────────────────────
-const ROLE_OPTIONS = ["", "ADMIN", "USER", "MODERATOR", "ADVERTISER"];
+const ROLE_OPTIONS = ["", "USER", "ADVERTISER"];
 const STATUS_OPTIONS = ["", "ACTIVE", "SUSPENDED", "DELETED"];
 const VERIFIED_OPTIONS = [
   { label: "All", value: "" },
