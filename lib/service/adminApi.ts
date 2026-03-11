@@ -4,7 +4,7 @@ import { axiosBaseQuery } from "../axiosBaseQuery";
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Users"],
+  tagTypes: ["Users", "User"],
   endpoints: (builder) => ({
     // Get all users
     getUsers: builder.query({
@@ -23,15 +23,18 @@ export const adminApi = createApi({
         method: "PATCH",
         data: { status },
       }),
-      invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }],
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "User", id: userId },
+      ],
     }),
 
+    // Get single user
     getUserById: builder.query({
       query: (userId) => ({
         url: `/admin/users/${userId}`,
         method: "GET",
       }),
-      providesTags: (result, error, userId) => [{ type: "Users", id: userId }],
+      providesTags: (result, error, userId) => [{ type: "User", id: userId }],
     }),
   }),
 });
