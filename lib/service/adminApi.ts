@@ -25,6 +25,7 @@ export const adminApi = createApi({
       }),
       invalidatesTags: (result, error, { userId }) => [
         { type: "User", id: userId },
+        "Users",
       ],
     }),
 
