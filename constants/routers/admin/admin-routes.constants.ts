@@ -16,12 +16,17 @@ export const ADMIN_ROUTES = {
     QUERY: (
       page = 1,
       limit = 10,
-      sortBy: "displayName" | "email" | "createdAt" = "createdAt",
-      order: "asc" | "desc" = "desc",
-      role: "ADVERTISER" | "PUBLISHER" | "ADMIN" | "" = "",
-      status: "SUSPENDED" | "ACTIVE" | "DELETED" | "" = "",
-      search: string = "",
-      isVerified?: boolean,
+      sortBy:
+        | "displayName"
+        | "email"
+        | "createdAt"
+        | string
+        | undefined = "createdAt",
+      order: "asc" | "desc" | string | undefined = "desc",
+      role: "ADVERTISER" | "PUBLISHER" | "ADMIN" | string | undefined = "",
+      status: "SUSPENDED" | "ACTIVE" | "DELETED" | string | undefined = "",
+      search: string | undefined = "",
+      isVerified: boolean | string | undefined | null = "all",
     ) =>
       `${ROOT}/users?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&role=${role}&isVerified=${isVerified}&status=${status}&search=${search}`,
   },

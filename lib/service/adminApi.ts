@@ -4,6 +4,7 @@ import { axiosBaseQuery } from "../axiosBaseQuery";
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: axiosBaseQuery(),
+  tagTypes: ["Users"],
   endpoints: (builder) => ({
     // Get all users
     getUsers: builder.query({
@@ -12,8 +13,31 @@ export const adminApi = createApi({
         method: "GET",
         params,
       }),
+      providesTags: ["Users"],
+    }),
+
+    // Update user status
+    updateUserStatus: builder.mutation({
+      query: ({ userId, status }) => ({
+        url: `/admin/users/${userId}/status`,
+        method: "PATCH",
+        data: { status },
+      }),
+      invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }],
+    }),
+
+    getUserById: builder.query({
+      query: (userId) => ({
+        url: `/admin/users/${userId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, userId) => [{ type: "Users", id: userId }],
     }),
   }),
 });
 
-export const { useGetUsersQuery } = adminApi;
+export const {
+  useGetUsersQuery,
+  useUpdateUserStatusMutation,
+  useGetUserByIdQuery,
+} = adminApi;
