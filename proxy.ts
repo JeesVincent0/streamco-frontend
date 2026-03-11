@@ -15,9 +15,12 @@ const ROLE_BASED_ROUTES = {
 };
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get("accessToken")?.value;
+  const token = request.cookies.get("refreshToken")?.value;
   const nextUrl = request.nextUrl.pathname;
 
+  if (nextUrl.startsWith("/auth/refresh-token")) {
+    return NextResponse.next();
+  }
   if (!token) {
     if (
       !nextUrl.startsWith(ADMIN_ROUTES.SIGNIN.ROOT) &&
@@ -55,7 +58,7 @@ export function proxy(request: NextRequest) {
       new URL(AUTH_ROUTES.LOGIN.ROOT, request.url),
     );
 
-    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
     return response;
   }
 

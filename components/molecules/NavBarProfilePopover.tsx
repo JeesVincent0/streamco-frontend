@@ -39,7 +39,9 @@ const NavBarProfilePopover = ({ roleProps }: { roleProps: ROLE }) => {
         router.replace(AUTH_ROUTES.LOGIN.ROOT);
       }
       toast.success("successfully logged out...");
-    } catch {}
+    } catch {
+      dispatch(logout());
+    }
   };
   return (
     <>

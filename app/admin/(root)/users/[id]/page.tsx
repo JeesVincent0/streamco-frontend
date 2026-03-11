@@ -1,0 +1,108 @@
+"use client";
+
+import { ArrowLeftIcon, XCircleIcon } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
+
+import {
+  useGetUserByIdQuery,
+  useUpdateUserStatusMutation,
+} from "@/lib/service/adminApi";
+import { ADMIN_ROUTES } from "@/constants/routers/admin/admin-routes.constants";
+import Loading from "@/components/molecules/common/LoadingPage";
+
+// ── Molecules ──────────────────────────────────────────────────────────────────
+import UserProfileCard from "@/components/molecules/admin/UserProfileCard";
+import ActionButtons from "@/components/molecules/admin/ActionButtons";
+
+// ── Organisms ─────────────────────────────────────────────────────────────────
+import AccountInfoSection from "@/components/organisms/admin/AccountInforSection";
+import ContentUserSection from "@/components/organisms/admin/ContentUserSection";
+import AdvertiserSection from "@/components/organisms/admin/AdvertiserSection";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+import { AdvertiserUser, ContentUser } from "@/lib/types";
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const UserDetails = () => {
+  const userId = useParams().id as string;
+
+  const { data: user, isLoading, isError } = useGetUserByIdQuery(userId);
+  const [updateUserStatus, { isLoading: isUpdating }] =
+    useUpdateUserStatusMutation();
+
+  const handleAction = async (status: "ACTIVE" | "SUSPENDED" | "DELETED") => {
+    if (!user) return;
+    try {
+      await updateUserStatus({ userId: user.id, status }).unwrap();
+      toast.success(`User status updated to ${status}`);
+    } catch {
+      toast.error("Failed to update user status");
+    }
+  };
+
+  // ── Guards ──────────────────────────────────────────────────────────────────
+  if (isLoading) return <Loading message="Fetching user details..." />;
+
+  if (isError || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <XCircleIcon className="size-10 text-destructive" />
+        <p className="text-muted-foreground text-sm">
+          Failed to load user details.
+        </p>
+        <Link
+          href={ADMIN_ROUTES.USERS.ROOT}
+          className="text-sm text-primary hover:underline"
+        >
+          Go back to users
+        </Link>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="space-y-5 py-6 px-2 sm:px-4 lg:px-6">
+      {/* Back navigation */}
+      <Link
+        href={ADMIN_ROUTES.USERS.ROOT}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeftIcon className="size-4" />
+        Back to Users
+      </Link>
+
+      {/* Two-column layout: sidebar | main */}
+      <div className="flex flex-col lg:flex-row gap-5 items-start">
+        {/* ── LEFT SIDEBAR ── */}
+        <div className="w-full lg:w-64 xl:w-72 shrink-0 space-y-4">
+          <UserProfileCard user={user} />
+          <ActionButtons
+            user={user}
+            isUpdating={isUpdating}
+            onAction={handleAction}
+          />
+        </div>
+
+        {/* ── RIGHT MAIN CONTENT ── */}
+        <div className="flex-1 min-w-0 space-y-5">
+          <AccountInfoSection user={user} />
+
+          {user.role === "USER" && (
+            <ContentUserSection user={user as ContentUser} />
+          )}
+
+          {user.role === "ADVERTISER" && (
+            <AdvertiserSection user={user as AdvertiserUser} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserDetails;
