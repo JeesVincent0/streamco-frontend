@@ -12,6 +12,7 @@ export const USER_ROUTES = {
     SECURITY: `/settings/security`,
     WALLET: `/settings/wallet`,
     CHANNELS: `/settings/channels`,
+    ERROR_LOGIN: `/settings/error/login`,
   },
   HELP: {
     ROOT: `/help`,

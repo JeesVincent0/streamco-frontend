@@ -1,9 +1,7 @@
-const page = () => {
-  return (
-    <div className="flex items-center justify-center h-full text-2xl font-bold text-gray-500">
-      Profile coming soon
-    </div>
-  );
+import UserProfile from "@/components/organisms/user/UserProfile";
+
+const ProfilePage = () => {
+  return <UserProfile />;
 };
 
-export default page;
+export default ProfilePage;
