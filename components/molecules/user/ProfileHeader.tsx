@@ -1,6 +1,7 @@
 import ProfileCompletionBadge from "@/components/atoms/ProfileCompletionBadge";
 import UserAvatar from "@/components/atoms/UserAvatar";
 import VerifiedBadge from "@/components/atoms/VerifiedBadge";
+import EditAvatarTrigger from "./EditAvatarTrigger"; // Path to your new component
 
 const ProfileHeader = ({
   data,
@@ -13,18 +14,15 @@ const ProfileHeader = ({
   };
 }) => {
   return (
-    <section className="rounded-lg border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] p-6">
+    <section className="rounded-lg border border-black/10 dark:border-white/10 bg-black/3 dark:bg-white/5 p-6 transition-all">
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
           Profile
         </h2>
-
-        {/* Profile Completion Status Badge */}
         <ProfileCompletionBadge isProfileCompleted={data.isProfileCompleted} />
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Avatar with fixed border */}
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#C35B00]">
           <UserAvatar
             avatarUrl={data.avatarUrl}
@@ -38,13 +36,14 @@ const ProfileHeader = ({
             <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
               {data.displayName}
             </span>
-            {/* Verified Badge next to name */}
             <VerifiedBadge value={data.isVerified} />
           </div>
 
-          <button className="w-fit rounded bg-black/5 dark:bg-white/10 px-3 py-1 text-[10px] font-medium text-neutral-600 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/20 transition-colors">
-            Edit avatar
-          </button>
+          {/* Now passing current image and name for the preview */}
+          <EditAvatarTrigger
+            currentAvatar={data.avatarUrl}
+            displayName={data.displayName}
+          />
         </div>
       </div>
     </section>
