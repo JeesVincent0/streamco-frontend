@@ -8,4 +8,5 @@ export * from "./advertiser-signup.interface";
 export * from "./user-signup.req.interface";
 export * from "./user-signup-res.interface";
 export * from "./generate-otp-res.interface";
-export * from "./verify-otp-reset-password.interface"
+export * from "./verify-otp-reset-password.interface";
+export * from "./userProflie.inteface";

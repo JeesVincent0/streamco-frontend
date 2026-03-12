@@ -3,11 +3,13 @@ import { authApi } from "./service";
 import { userApi } from "./service";
 import authReducer from "./slice/authSlice";
 import { adminApi } from "./service/adminApi";
+import { settingApi } from "./service/user-api/settingsApi";
 
 const rootReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
+  [settingApi.reducerPath]: settingApi.reducer,
   auth: authReducer,
 });
 
@@ -18,6 +20,7 @@ export const store = configureStore({
       authApi.middleware,
       userApi.middleware,
       adminApi.middleware,
+      settingApi.middleware,
     ),
 });
 

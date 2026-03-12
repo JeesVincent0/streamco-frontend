@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -23,7 +22,7 @@ import { useUserSigninApiMutation } from "@/lib/service";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
-  const [userSigninApi, { isLoading, isError }] = useUserSigninApiMutation();
+  const [userSigninApi, { isLoading }] = useUserSigninApiMutation();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
