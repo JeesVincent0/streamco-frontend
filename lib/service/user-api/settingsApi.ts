@@ -1,5 +1,6 @@
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { UserProfileInterface } from "@/lib/interfaces";
+import { UpdateBasicUserInterface } from "@/lib/interfaces/update-basic-user.interface";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 export const settingApi = createApi({
@@ -15,7 +16,29 @@ export const settingApi = createApi({
       }),
       providesTags: ["ProfileUser"],
     }),
+
+    updateUserEmail: builder.mutation<void, { email: string }>({
+      query: (data) => ({
+        url: "/user/profile/update-email",
+        method: "PUT",
+        data,
+      }),
+      invalidatesTags: ["ProfileUser"],
+    }),
+
+    updateBasicProfile: builder.mutation<void, UpdateBasicUserInterface>({
+      query: (data) => ({
+        url: "/user/profile/update-basic",
+        method: "PUT",
+        data,
+      }),
+      invalidatesTags: ["ProfileUser"],
+    }),
   }),
 });
 
-export const { useGetUserProfileQuery } = settingApi;
+export const {
+  useGetUserProfileQuery,
+  useUpdateUserEmailMutation,
+  useUpdateBasicProfileMutation,
+} = settingApi;

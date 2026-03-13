@@ -7,6 +7,12 @@ import { useForm } from "react-hook-form";
 import { baseUserUpdateSchema } from "@/features/auth/validators/base-user-update-schema.validators";
 import { toast } from "sonner";
 import z from "zod";
+import { Edit } from "lucide-react";
+import Loading from "../common/LoadingPage";
+import {
+  useUpdateBasicProfileMutation,
+  useUpdateUserEmailMutation,
+} from "@/lib/service/user-api/settingsApi";
 
 const ProfileBasicDetails = ({
   data,
@@ -20,6 +26,15 @@ const ProfileBasicDetails = ({
   };
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEmailEditing, setIsEmailEditing] = useState(false);
+  const [updateBasicProfile, { isLoading: isUpdatingBasicProfile }] =
+    useUpdateBasicProfileMutation();
+  const [updateUserEmail, { isLoading: isUpdatingUserEmail }] =
+    useUpdateUserEmailMutation();
+
+  const handleEmailEdit = () => {
+    setIsEmailEditing(true);
+  };
 
   const {
     register,
@@ -32,7 +47,8 @@ const ProfileBasicDetails = ({
       displayName: data.displayName,
       bio: data.bio,
       dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender,
+      gender: data.gender ? data.gender : "",
+      email: data.email,
     },
   });
 
@@ -42,21 +58,65 @@ const ProfileBasicDetails = ({
       displayName: data.displayName,
       bio: data.bio,
       dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender,
+      gender: data.gender ? data.gender : "",
+      email: data.email,
     });
   }, [data, reset]);
 
   const handleCancel = () => {
-    reset(); // Revert to defaultValues
+    reset();
     setIsEditing(false);
+    setIsEmailEditing(false);
   };
 
   const onSave = (formData: z.infer<typeof baseUserUpdateSchema>) => {
-    console.log("Submitting to API:", formData);
-    toast.success("Profile updated successfully!");
-    setIsEditing(false);
-  };
+    if (isEmailEditing) {
+      const email = formData.email;
+      if (!email) {
+        toast.error("Email cannot be empty.");
+        return;
+      }
 
+      if (email === data.email) {
+        toast.error("New email cannot be the same as the current email.");
+        return;
+      } else {
+        updateBasicProfile({
+          displayName: formData.displayName,
+          bio: formData.bio,
+          dob: formData.dob,
+          gender: formData.gender,
+        })
+          .unwrap()
+          .catch(() => {
+            toast.error("Failed to update profile. Please try again.");
+          });
+        updateUserEmail({ email })
+          .unwrap()
+          .then(() => {
+            toast.success("Profile Updated successfully");
+            setIsEmailEditing(false);
+          })
+          .catch(() => {
+            toast.error("Failed to update profile. Please try again.");
+          });
+      }
+    } else {
+      formData.email = undefined;
+      updateBasicProfile(formData)
+        .unwrap()
+        .then(() => {
+          toast.success("Profile updated successfully");
+          setIsEditing(false);
+          setIsEmailEditing(false);
+        })
+        .catch(() => {
+          toast.error("Failed to update profile. Please try again.");
+        });
+    }
+  };
+  if (isUpdatingBasicProfile || isUpdatingUserEmail)
+    return <Loading message="Updating..." />;
   return (
     <section className="rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-[#1A1A1A] p-6 shadow-sm dark:shadow-none">
       <div className="mb-6 border-b border-black/5 dark:border-white/10 pb-2 flex justify-between items-center">
@@ -79,7 +139,26 @@ const ProfileBasicDetails = ({
           )}
         </div>
 
-        <InputGroup label="Email" value={data.email} readOnly={true} />
+        <div>
+          <InputGroup
+            label="Email"
+            readOnly={!isEmailEditing}
+            {...register("email")}
+          >
+            {isEditing && (
+              <Edit
+                onClick={handleEmailEdit}
+                className="dark:text-white text-black hover:cursor-pointer"
+                size={16}
+              />
+            )}
+          </InputGroup>
+          {errors.email && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.email.message as string}
+            </p>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-neutral-500 dark:text-neutral-400">

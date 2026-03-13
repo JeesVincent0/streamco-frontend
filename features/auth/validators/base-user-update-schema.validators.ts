@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 export const baseUserUpdateSchema = z.object({
   displayName: z.string().min(3, "Display name must be at least 3 characters"),
@@ -18,4 +18,5 @@ export const baseUserUpdateSchema = z.object({
     return age >= 12;
   }, "You must be at least 12 years old"),
   gender: z.string().min(1, "Gender is required"),
+  email: z.string().email("Invalid email address").optional(),
 });
