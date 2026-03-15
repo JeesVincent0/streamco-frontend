@@ -9,12 +9,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import Loading from "../common/LoadingPage"; // Adjust import path as needed
-import {
-  useResendOtpMutation,
-  useVerifyOtpMutation,
-} from "@/lib/service/user-api/settingsApi";
+import { useVerifyOtpMutation } from "@/lib/service/user-api/settingsApi";
 import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
+import { useResendOtpMutation } from "@/lib/service";
 
 interface OtpVerificationProps {
   email: string;
@@ -148,7 +146,7 @@ const UpdateEmailOtpVerification = ({
         return;
       }
 
-      const response = await resendOtp({ id, purpose }).unwrap();
+      const response = await resendOtp({ id }).unwrap();
 
       const newResendAt = response?.data.otpResendAt || Date.now() + 30000;
 

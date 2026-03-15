@@ -124,8 +124,8 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
         toast.success("Profile updated successfully");
         setIsEditing(false);
       }
-    } catch {
-      toast.error("Failed to update profile. Please try again.");
+    } catch (error) {
+      toast.error(error.data.message);
     }
   };
 

@@ -57,17 +57,6 @@ export const settingApi = createApi({
       }),
       invalidatesTags: ["ProfileUser"],
     }),
-
-    resendOtp: builder.mutation<
-      { status: string; message: string; data: { otpResendAt: Date } },
-      { id: string; purpose: string }
-    >({
-      query: (data) => ({
-        url: "user/profile/resend-otp",
-        method: "POST",
-        data,
-      }),
-    }),
   }),
 });
 
@@ -76,5 +65,4 @@ export const {
   useUpdateUserEmailMutation,
   useUpdateBasicProfileMutation,
   useVerifyOtpMutation,
-  useResendOtpMutation,
 } = settingApi;
