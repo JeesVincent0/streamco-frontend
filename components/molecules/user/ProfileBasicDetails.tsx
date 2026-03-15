@@ -1,22 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import InputGroup from "../common/ProfileInputGroup";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { baseUserUpdateSchema } from "@/features/auth/validators/base-user-update-schema.validators";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import { toast } from "sonner";
 import { Edit } from "lucide-react";
+
+import InputGroup from "../common/ProfileInputGroup";
 import Loading from "../common/LoadingPage";
+import { baseUserUpdateSchema } from "@/features/auth/validators/base-user-update-schema.validators";
 import {
   useUpdateBasicProfileMutation,
   useUpdateUserEmailMutation,
 } from "@/lib/service/user-api/settingsApi";
+import UpdateEmailOtpVerification from "./UpdateEmailOtpVerification";
+import { useRouter } from "next/navigation";
+import { USER_ROUTES } from "@/constants/routers";
 
-const ProfileBasicDetails = ({
-  data,
-}: {
+interface ProfileBasicDetailsProps {
   data: {
     displayName: string;
     bio?: string;
@@ -24,17 +26,23 @@ const ProfileBasicDetails = ({
     gender: string;
     email: string;
   };
-}) => {
+}
+
+const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
+  const router = useRouter();
+  // UI States
   const [isEditing, setIsEditing] = useState(false);
   const [isEmailEditing, setIsEmailEditing] = useState(false);
+
+  // OTP States
+  const [showOtp, setShowOtp] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+
+  // Mutations
   const [updateBasicProfile, { isLoading: isUpdatingBasicProfile }] =
     useUpdateBasicProfileMutation();
   const [updateUserEmail, { isLoading: isUpdatingUserEmail }] =
     useUpdateUserEmailMutation();
-
-  const handleEmailEdit = () => {
-    setIsEmailEditing(true);
-  };
 
   const {
     register,
@@ -52,13 +60,13 @@ const ProfileBasicDetails = ({
     },
   });
 
-  // If external data changes, update the form
+  // Sync external data changes to the form
   useEffect(() => {
     reset({
       displayName: data.displayName,
       bio: data.bio,
       dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender ? data.gender : "",
+      gender: data.gender || "",
       email: data.email,
     });
   }, [data, reset]);
@@ -69,54 +77,83 @@ const ProfileBasicDetails = ({
     setIsEmailEditing(false);
   };
 
-  const onSave = (formData: z.infer<typeof baseUserUpdateSchema>) => {
-    if (isEmailEditing) {
-      const email = formData.email;
-      if (!email) {
-        toast.error("Email cannot be empty.");
-        return;
-      }
+  const handleEmailEdit = () => {
+    setIsEmailEditing(true);
+  };
 
-      if (email === data.email) {
-        toast.error("New email cannot be the same as the current email.");
-        return;
-      } else {
-        updateBasicProfile({
+  const onSave = async (formData: z.infer<typeof baseUserUpdateSchema>) => {
+    try {
+      if (isEmailEditing) {
+        const newEmail = formData.email;
+
+        if (!newEmail) {
+          return toast.error("Email cannot be empty.");
+        }
+        if (newEmail === data.email) {
+          return toast.error(
+            "New email cannot be the same as the current email.",
+          );
+        }
+
+        // 1. Update basic profile first
+        await updateBasicProfile({
           displayName: formData.displayName,
           bio: formData.bio,
           dob: formData.dob,
           gender: formData.gender,
-        })
-          .unwrap()
-          .catch(() => {
-            toast.error("Failed to update profile. Please try again.");
-          });
-        updateUserEmail({ email })
-          .unwrap()
-          .then(() => {
-            toast.success("Profile Updated successfully");
-            setIsEmailEditing(false);
-          })
-          .catch(() => {
-            toast.error("Failed to update profile. Please try again.");
-          });
+        }).unwrap();
+
+        // 2. Update email
+        const res = await updateUserEmail({ email: newEmail }).unwrap();
+        localStorage.setItem("id", res.data.id);
+        localStorage.setItem("purpose", res.data.purpose);
+        localStorage.setItem("otpResendAt", res.data.otpResendAt.toString());
+
+        toast.success("Profile updated. Please verify your new email.");
+
+        // Switch to OTP View
+        setPendingEmail(newEmail || "jeesvincent@gmail.com");
+        setShowOtp(true);
+        setIsEditing(false);
+        setIsEmailEditing(false);
+      } else {
+        // Standard profile update (no email change)
+        const submitData = { ...formData, email: undefined };
+        await updateBasicProfile(submitData).unwrap();
+
+        toast.success("Profile updated successfully");
+        setIsEditing(false);
       }
-    } else {
-      formData.email = undefined;
-      updateBasicProfile(formData)
-        .unwrap()
-        .then(() => {
-          toast.success("Profile updated successfully");
-          setIsEditing(false);
-          setIsEmailEditing(false);
-        })
-        .catch(() => {
-          toast.error("Failed to update profile. Please try again.");
-        });
+    } catch {
+      toast.error("Failed to update profile. Please try again.");
     }
   };
-  if (isUpdatingBasicProfile || isUpdatingUserEmail)
+
+  if (isUpdatingBasicProfile || isUpdatingUserEmail) {
     return <Loading message="Updating..." />;
+  }
+
+  if (showOtp) {
+    return (
+      <div className="rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-[#1A1A1A] p-6 text-center">
+        <h2 className="text-lg font-semibold mb-2">Verify Your Email</h2>
+        <p className="text-sm text-neutral-500 mb-6">
+          We sent a verification code to <strong>{pendingEmail}</strong>
+        </p>
+
+        {/* Render the OTP Component */}
+        <UpdateEmailOtpVerification
+          email={pendingEmail}
+          onSuccess={() => setShowOtp(false)}
+          onCancel={() => {
+            setShowOtp(false);
+            router.push(USER_ROUTES.SETTINGS.PROFILE);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <section className="rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-[#1A1A1A] p-6 shadow-sm dark:shadow-none">
       <div className="mb-6 border-b border-black/5 dark:border-white/10 pb-2 flex justify-between items-center">
@@ -167,12 +204,11 @@ const ProfileBasicDetails = ({
           <textarea
             {...register("bio")}
             readOnly={!isEditing}
-            className={`min-h-25 w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] 
-              ${
-                !isEditing
-                  ? "bg-neutral-100 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/5 text-neutral-500"
-                  : "bg-neutral-50 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
-              }`}
+            className={`min-h-25 w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] ${
+              !isEditing
+                ? "bg-neutral-100 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/5 text-neutral-500"
+                : "bg-neutral-50 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
+            }`}
           />
           {errors.bio && (
             <p className="text-xs text-red-500">

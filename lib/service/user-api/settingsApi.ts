@@ -17,7 +17,18 @@ export const settingApi = createApi({
       providesTags: ["ProfileUser"],
     }),
 
-    updateUserEmail: builder.mutation<void, { email: string }>({
+    updateUserEmail: builder.mutation<
+      {
+        status: string;
+        message: string;
+        data: {
+          id: string;
+          purpose: string;
+          otpResendAt: number;
+        };
+      },
+      { email: string }
+    >({
       query: (data) => ({
         url: "/user/profile/update-email",
         method: "PUT",
@@ -34,6 +45,29 @@ export const settingApi = createApi({
       }),
       invalidatesTags: ["ProfileUser"],
     }),
+
+    verifyOtp: builder.mutation<
+      void,
+      { id: string; purpose: string; otp: number }
+    >({
+      query: (data) => ({
+        url: "user/profile/verify-otp",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["ProfileUser"],
+    }),
+
+    resendOtp: builder.mutation<
+      { status: string; message: string; data: { otpResendAt: Date } },
+      { id: string; purpose: string }
+    >({
+      query: (data) => ({
+        url: "user/profile/resend-otp",
+        method: "POST",
+        data,
+      }),
+    }),
   }),
 });
 
@@ -41,4 +75,6 @@ export const {
   useGetUserProfileQuery,
   useUpdateUserEmailMutation,
   useUpdateBasicProfileMutation,
+  useVerifyOtpMutation,
+  useResendOtpMutation,
 } = settingApi;
