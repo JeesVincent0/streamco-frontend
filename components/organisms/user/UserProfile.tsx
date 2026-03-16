@@ -7,7 +7,7 @@ import ProfileSocialLinks from "@/components/molecules/user/ProfileSocialLinks";
 import { useGetUserProfileQuery } from "@/lib/service/user-api/settingsApi";
 
 const UserProfile = () => {
-  const { data, isLoading, error } = useGetUserProfileQuery();
+  const { data, isLoading } = useGetUserProfileQuery();
   console.log("fetched user profile data:", data);
 
   if (isLoading) return <Loading />;
@@ -34,7 +34,7 @@ const UserProfile = () => {
       />
 
       {/* 3. Social Links Section */}
-      <ProfileSocialLinks />
+      <ProfileSocialLinks data={data?.socialLinks} />
     </div>
   );
 };

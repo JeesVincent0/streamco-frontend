@@ -1,3 +1,4 @@
+import { SocialLinksFormValues } from "@/features/user/validators";
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { UserProfileInterface } from "@/lib/interfaces";
 import { UpdateBasicUserInterface } from "@/lib/interfaces/update-basic-user.interface";
@@ -46,6 +47,15 @@ export const settingApi = createApi({
       invalidatesTags: ["ProfileUser"],
     }),
 
+    updateSocialLinks: builder.mutation<void, SocialLinksFormValues>({
+      query: (data) => ({
+        url: "/user/profile/social-links",
+        method: "PUT",
+        data,
+      }),
+      invalidatesTags: ["ProfileUser"],
+    }),
+
     verifyOtp: builder.mutation<
       void,
       { id: string; purpose: string; otp: number }
@@ -65,4 +75,5 @@ export const {
   useUpdateUserEmailMutation,
   useUpdateBasicProfileMutation,
   useVerifyOtpMutation,
+  useUpdateSocialLinksMutation,
 } = settingApi;

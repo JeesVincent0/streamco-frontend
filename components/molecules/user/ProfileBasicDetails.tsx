@@ -250,14 +250,14 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
             <>
               <button
                 type="button"
-                className="rounded bg-black/5 dark:bg-white/10 px-6 py-2 text-xs font-semibold"
+                className="rounded bg-black/5 hover:cursor-pointer dark:bg-white/10 px-6 py-2 text-xs font-semibold"
                 onClick={handleCancel}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded bg-[#C35B00] px-6 py-2 text-xs font-semibold text-white"
+                className="rounded bg-[#C35B00] hover:bg-[#b75500] hover:cursor-pointer px-6 py-2 text-xs font-semibold text-white"
               >
                 Save
               </button>
@@ -265,7 +265,7 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
           ) : (
             <button
               type="button"
-              className="rounded bg-[#C35B00] px-6 py-2 text-xs font-semibold text-white"
+              className="rounded bg-[#C35B00] hover:bg-[#b75500] hover:cursor-pointer px-6 py-2 text-xs font-semibold text-white"
               onClick={() => setIsEditing(true)}
             >
               Edit
