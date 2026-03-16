@@ -8,7 +8,6 @@ import { useGetUserProfileQuery } from "@/lib/service/user-api/settingsApi";
 
 const UserProfile = () => {
   const { data, isLoading } = useGetUserProfileQuery();
-  console.log("fetched user profile data:", data);
 
   if (isLoading) return <Loading />;
   return (

@@ -68,8 +68,7 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
       await updateSocialLinks(formData).unwrap();
       toast.success("Social links updated successfully");
       setIsEditing(false);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Something went wrong, try again later");
     }
   };

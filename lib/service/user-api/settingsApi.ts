@@ -67,6 +67,19 @@ export const settingApi = createApi({
       }),
       invalidatesTags: ["ProfileUser"],
     }),
+
+    // ... inside settingApi endpoints
+    updateAvatar: builder.mutation<{ url: string }, FormData>({
+      query: (formData) => ({
+        url: "user/profile/avatar",
+        method: "POST",
+        data: formData, // Change 'body' to 'data' to match Axios expectations
+        headers: {
+          "Content-Type": "multipart/form-data", // Tell Axios this is a file upload
+        },
+      }),
+      invalidatesTags: ["ProfileUser"],
+    }),
   }),
 });
 
@@ -76,4 +89,5 @@ export const {
   useUpdateBasicProfileMutation,
   useVerifyOtpMutation,
   useUpdateSocialLinksMutation,
+  useUpdateAvatarMutation,
 } = settingApi;

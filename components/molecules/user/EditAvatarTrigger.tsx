@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/atoms/UserAvatar";
 import { getCroppedImg } from "@/features/utility";
+import { useUpdateAvatarMutation } from "@/lib/service/user-api/settingsApi";
 
 const EditAvatarTrigger = ({
   currentAvatar,
@@ -24,6 +25,32 @@ const EditAvatarTrigger = ({
   const [isOpen, setIsOpen] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
+
+  // RTK Query Hook
+  const [updateAvatar, { isLoading }] = useUpdateAvatarMutation();
+
+  const handleSaveChanges = async () => {
+    if (!croppedImage) return;
+
+    try {
+      // 1. Convert Base64/DataURL to Blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+
+      // 2. Create FormData
+      const formData = new FormData();
+      formData.append("file", blob, "avatar.jpg"); // 'file' must match Multer key in NestJS
+
+      // 3. Trigger RTK Query Mutation
+      await updateAvatar(formData).unwrap();
+
+      toast.success("Profile picture updated!");
+      handleReset();
+    } catch (error) {
+      toast.error("Failed to upload image");
+      console.error(error);
+    }
+  };
 
   // Cropper States
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -159,12 +186,10 @@ const EditAvatarTrigger = ({
                 {croppedImage && (
                   <Button
                     className="flex-1 bg-[#C35B00] text-white"
-                    onClick={() => {
-                      toast.success("Saved!");
-                      setIsOpen(false);
-                    }}
+                    disabled={isLoading}
+                    onClick={handleSaveChanges}
                   >
-                    Save Changes
+                    {isLoading ? "Uploading..." : "Save Changes"}
                   </Button>
                 )}
               </div>
