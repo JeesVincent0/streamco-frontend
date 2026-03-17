@@ -43,6 +43,13 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(
         new URL(AUTH_ROUTES.LOGIN.ROOT, request.url),
       );
+    } else if (
+      nextUrl.startsWith(USER_ROUTES.SETTINGS.ROOT) &&
+      !nextUrl.startsWith(USER_ROUTES.SETTINGS.ERROR_LOGIN)
+    ) {
+      return NextResponse.redirect(
+        new URL(USER_ROUTES.SETTINGS.ERROR_LOGIN, request.url),
+      );
     }
 
     return NextResponse.next();
@@ -53,6 +60,14 @@ export function proxy(request: NextRequest) {
   if (!payload) {
     if (nextUrl.startsWith(USER_ROUTES.HOME.ROOT)) {
       return NextResponse.redirect(new URL(USER_ROUTES.HOME.ROOT, request.url));
+    }
+    if (
+      nextUrl.startsWith(USER_ROUTES.SETTINGS.ROOT) &&
+      !nextUrl.startsWith(USER_ROUTES.SETTINGS.ERROR_LOGIN)
+    ) {
+      return NextResponse.redirect(
+        new URL(USER_ROUTES.SETTINGS.ERROR_LOGIN, request.url),
+      );
     }
     const response = NextResponse.redirect(
       new URL(AUTH_ROUTES.LOGIN.ROOT, request.url),

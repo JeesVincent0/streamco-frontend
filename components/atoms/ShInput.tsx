@@ -31,7 +31,6 @@ const ShInput = ({
   error,
   fieldDescription,
   style,
-  children,
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
 

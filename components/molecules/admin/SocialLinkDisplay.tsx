@@ -1,29 +1,36 @@
 import { LinkIcon } from "lucide-react";
-import { SocialLinks } from "@/lib/types";
 
-interface SocialLinksDisplayProps {
-  links: SocialLinks;
+export interface SocialLinkData {
+  type: string;
+  url: string;
 }
 
-const SocialLinksDisplay = ({ links }: SocialLinksDisplayProps) => {
-  const entries = Object.entries(links).filter(([, v]) => Boolean(v));
+interface SocialLinksDisplayProps {
+  links?: SocialLinkData[];
+}
 
-  if (entries.length === 0) {
+const SocialLinksDisplay = ({ links = [] }: SocialLinksDisplayProps) => {
+  // Filter out any links that might be empty/invalid just to be safe
+  const validLinks = links.filter((link) => Boolean(link.url));
+
+  if (validLinks.length === 0) {
     return <span className="text-muted-foreground text-sm">—</span>;
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      {entries.map(([platform, url]) => (
+      {validLinks.map((link) => (
         <a
-          key={platform}
-          href={url}
+          key={link.type}
+          href={link.url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-primary hover:bg-muted transition-colors"
         >
           <LinkIcon className="size-3" />
-          <span className="capitalize">{platform}</span>
+          {/* Note: .toLowerCase() is needed here because CSS 'capitalize' 
+              won't change "INSTAGRAM" to "Instagram" unless it's lowercase first */}
+          <span className="capitalize">{link.type.toLowerCase()}</span>
         </a>
       ))}
     </div>
