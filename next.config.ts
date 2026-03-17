@@ -18,10 +18,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        // Here is your exact AWS S3 hostname from the error
         hostname: "streamco-avatar-2026.s3.us-east-1.amazonaws.com",
         port: "",
         pathname: "/**",
+      },
+      // Add this pattern here:
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+        port: "",
+        pathname: "/api/**",
       },
     ],
   },
