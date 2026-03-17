@@ -8,7 +8,7 @@ import {
   ClipboardEvent,
 } from "react";
 import { toast } from "sonner";
-import Loading from "../common/LoadingPage"; // Adjust import path as needed
+import Loading from "../common/LoadingPage";
 import { useVerifyOtpMutation } from "@/lib/service/user-api/settingsApi";
 import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
@@ -22,21 +22,6 @@ interface OtpVerificationProps {
 
 const OTP_LENGTH = 6;
 
-// Helper function to calculate remaining seconds from the saved timestamp
-const calculateTimeLeft = () => {
-  if (typeof window === "undefined") return 0;
-
-  const resendAtStr = localStorage.getItem("otpResendAt");
-  if (!resendAtStr) return 0;
-
-  const resendAt = parseInt(resendAtStr, 10);
-  const now = Date.now();
-
-  const diffInSeconds = Math.floor((resendAt - now) / 1000);
-
-  return diffInSeconds > 0 ? diffInSeconds : 0;
-};
-
 const UpdateEmailOtpVerification = ({
   email,
   onSuccess,
@@ -44,39 +29,60 @@ const UpdateEmailOtpVerification = ({
 }: OtpVerificationProps) => {
   const router = useRouter();
   const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
-  const [timeLeft, setTimeLeft] = useState<number>(calculateTimeLeft);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [verifyOtp] = useVerifyOtpMutation();
   const [resendOtp] = useResendOtpMutation();
 
-  // Handle countdown timer
+  // Unified helper for time calculation
+  const refreshTimeLeft = () => {
+    if (typeof window === "undefined") return 0;
+    const resendAtStr = localStorage.getItem("otpResendAt");
+    if (!resendAtStr) return 0;
+
+    // FIX: Convert ISO string to a numeric timestamp
+    const resendAt = new Date(resendAtStr).getTime();
+
+    // If the string is invalid, getTime() returns NaN
+    if (isNaN(resendAt)) return 0;
+
+    const diff = Math.floor((resendAt - Date.now()) / 1000);
+    return diff > 0 ? diff : 0;
+  };
+
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    // 1. Initial set
+    const initial = refreshTimeLeft();
+    setTimeLeft(initial);
+
+    // 2. Continuous timer
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      const current = refreshTimeLeft();
+      setTimeLeft(current);
+
+      if (current <= 0) {
+        clearInterval(timer);
+      }
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, []); // Run once on mount
 
   const handleChange = (index: number, value: string) => {
-    if (isNaN(Number(value))) return; // Only allow numbers
-
+    if (isNaN(Number(value))) return;
     const newOtp = [...otp];
-    // Take only the last character in case they type fast
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Auto-focus next input
-    if (value && index < OTP_LENGTH - 1 && inputRefs.current[index + 1]) {
+    if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      // Move focus to the previous input on backspace if current is empty
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -86,47 +92,36 @@ const UpdateEmailOtpVerification = ({
     const pastedData = e.clipboardData
       .getData("text/plain")
       .slice(0, OTP_LENGTH);
-    if (!/^\d+$/.test(pastedData)) return; // Ensure it's only numbers
+    if (!/^\d+$/.test(pastedData)) return;
 
     const newOtp = [...otp];
-    for (let i = 0; i < pastedData.length; i++) {
-      newOtp[i] = pastedData[i];
-    }
+    pastedData.split("").forEach((char, i) => {
+      if (i < OTP_LENGTH) newOtp[i] = char;
+    });
     setOtp(newOtp);
-
-    // Focus the next empty input or the last one
-    const nextIndex = Math.min(pastedData.length, OTP_LENGTH - 1);
-    inputRefs.current[nextIndex]?.focus();
+    inputRefs.current[Math.min(pastedData.length, OTP_LENGTH - 1)]?.focus();
   };
 
   const handleVerify = async () => {
     const otpCode = otp.join("");
-    if (otpCode.length < OTP_LENGTH) {
-      return toast.error("Please enter the complete verification code.");
-    }
+    if (otpCode.length < OTP_LENGTH) return toast.error("Enter complete code.");
 
     setIsLoading(true);
     try {
       const id = localStorage.getItem("id");
       const purpose = localStorage.getItem("purpose");
-
-      if (!id || !purpose) {
-        toast.error("Session expired. Please try again.");
-        router.push(USER_ROUTES.SETTINGS.PROFILE);
-        return; // CRITICAL: Added return to stop execution if no ID/Purpose
-      }
+      if (!id || !purpose) throw new Error("Session expired");
 
       await verifyOtp({ id, purpose, otp: Number(otpCode) }).unwrap();
 
-      // Clean up local storage after success
       localStorage.removeItem("id");
       localStorage.removeItem("purpose");
       localStorage.removeItem("otpResendAt");
 
       toast.success("Email verified successfully!");
       onSuccess();
-    } catch {
-      toast.error("Invalid verification code. Please try again.");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Invalid code.");
     } finally {
       setIsLoading(false);
     }
@@ -137,27 +132,21 @@ const UpdateEmailOtpVerification = ({
 
     try {
       const id = localStorage.getItem("id");
-      const purpose = localStorage.getItem("purpose");
-
-      // CRITICAL: Check if ID and purpose exist before attempting to resend
-      if (!id || !purpose) {
-        toast.error("Session expired. Please try again.");
-        router.push(USER_ROUTES.SETTINGS.PROFILE);
-        return;
-      }
+      if (!id) return toast.error("Session expired.");
 
       const response = await resendOtp({ id }).unwrap();
+      const resendAt = response?.data?.otpResendAt;
 
-      const newResendAt = response?.data.otpResendAt || Date.now() + 30000;
+      if (resendAt) {
+        localStorage.setItem("otpResendAt", resendAt.toString());
+        setTimeLeft(refreshTimeLeft()); // Trigger immediate update
+      }
 
-      localStorage.setItem("otpResendAt", newResendAt.toString());
-      setTimeLeft(calculateTimeLeft());
-
-      toast.success("A new code has been sent to your email.");
+      toast.success("New code sent!");
       setOtp(new Array(OTP_LENGTH).fill(""));
       inputRefs.current[0]?.focus();
-    } catch {
-      toast.error("Failed to resend code. Please try again later.");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to resend.");
     }
   };
 
@@ -174,7 +163,6 @@ const UpdateEmailOtpVerification = ({
             }}
             type="text"
             inputMode="numeric"
-            autoComplete="one-time-code"
             maxLength={1}
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
@@ -188,22 +176,21 @@ const UpdateEmailOtpVerification = ({
       <button
         onClick={handleVerify}
         disabled={otp.join("").length < OTP_LENGTH || isLoading}
-        className="w-full rounded bg-[#C35B00] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        className="w-full rounded bg-[#C35B00] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         Verify Email
       </button>
 
       <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-        <p className="text-neutral-500 dark:text-neutral-400">
-          {`Didn't receive the code?`}
-        </p>
+        <p className="text-neutral-500">{`Didn't receive the code?`}</p>
         <button
+          type="button"
           onClick={handleResend}
           disabled={timeLeft > 0}
           className={`font-medium transition-colors ${
             timeLeft > 0
-              ? "text-neutral-400 cursor-not-allowed"
-              : "text-[#C35B00] hover:underline"
+              ? "text-neutral-400 cursor-default"
+              : "text-[#C35B00] hover:underline cursor-pointer"
           }`}
         >
           {timeLeft > 0 ? `Resend code in ${timeLeft}s` : "Resend Code"}
@@ -212,7 +199,7 @@ const UpdateEmailOtpVerification = ({
 
       <button
         onClick={onCancel}
-        className="mt-6 text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 underline"
+        className="mt-6 text-xs text-neutral-500 underline cursor-pointer"
       >
         Cancel and go back
       </button>

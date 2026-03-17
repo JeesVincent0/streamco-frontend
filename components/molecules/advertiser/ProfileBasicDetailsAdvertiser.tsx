@@ -9,26 +9,24 @@ import { Edit } from "lucide-react";
 
 import InputGroup from "../common/ProfileInputGroup";
 import Loading from "../common/LoadingPage";
-import { baseUserUpdateSchema } from "@/features/auth/validators/base-user-update-schema.validators";
 import {
   useUpdateBasicProfileMutation,
   useUpdateUserEmailMutation,
 } from "@/lib/service/user-api/settingsApi";
-import UpdateEmailOtpVerification from "./UpdateEmailOtpVerification";
+import UpdateEmailOtpVerification from "../user/UpdateEmailOtpVerification";
 import { useRouter } from "next/navigation";
-import { USER_ROUTES } from "@/constants/routers";
+import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
+import { advertiserUpdateSchema } from "@/features/auth/validators/base-advertiser-update-schema.validator";
 
 interface ProfileBasicDetailsProps {
   data: {
     displayName: string;
-    bio?: string;
-    dob: Date | null | undefined;
-    gender: string;
     email: string;
+    companyName: string;
   };
 }
 
-const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
+const ProfileBasicDetailsAdvertiser = ({ data }: ProfileBasicDetailsProps) => {
   const router = useRouter();
   // UI States
   const [isEditing, setIsEditing] = useState(false);
@@ -50,13 +48,11 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(baseUserUpdateSchema),
+    resolver: zodResolver(advertiserUpdateSchema),
     defaultValues: {
       displayName: data.displayName,
-      bio: data.bio,
-      dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender ? data.gender : "",
-      email: data.email,
+      email: data.email || "",
+      companyName: data.companyName || "",
     },
   });
 
@@ -64,10 +60,8 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
   useEffect(() => {
     reset({
       displayName: data.displayName,
-      bio: data.bio,
-      dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender || "",
       email: data.email,
+      companyName: data.companyName,
     });
   }, [data, reset]);
 
@@ -81,7 +75,7 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
     setIsEmailEditing(true);
   };
 
-  const onSave = async (formData: z.infer<typeof baseUserUpdateSchema>) => {
+  const onSave = async (formData: z.infer<typeof advertiserUpdateSchema>) => {
     try {
       if (isEmailEditing) {
         const newEmail = formData.email;
@@ -98,9 +92,7 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
         // 1. Update basic profile first
         await updateBasicProfile({
           displayName: formData.displayName,
-          bio: formData.bio,
-          dob: formData.dob,
-          gender: formData.gender,
+          companyName: formData.companyName,
         }).unwrap();
 
         // 2. Update email
@@ -147,7 +139,7 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
           onSuccess={() => setShowOtp(false)}
           onCancel={() => {
             setShowOtp(false);
-            router.push(USER_ROUTES.SETTINGS.PROFILE);
+            router.push(ADVERTISER_ROUTES.SETTINGS.PROFILE);
           }}
         />
       </div>
@@ -197,52 +189,18 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-            Bio
-          </label>
-          <textarea
-            {...register("bio")}
+        <div>
+          <InputGroup
+            label="Company Name"
             readOnly={!isEditing}
-            className={`min-h-25 w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] ${
-              !isEditing
-                ? "bg-neutral-100 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/5 text-neutral-500"
-                : "bg-neutral-50 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white"
-            }`}
+            {...register("companyName")}
           />
-          {errors.bio && (
-            <p className="text-xs text-red-500">
-              {errors.bio.message as string}
+
+          {errors.companyName && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.companyName?.message}
             </p>
           )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <InputGroup
-              label="Date of birth"
-              type="date"
-              readOnly={!isEditing}
-              {...register("dob")}
-            />
-            {errors.dob && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.dob.message as string}
-              </p>
-            )}
-          </div>
-          <div>
-            <InputGroup
-              label="Gender"
-              readOnly={!isEditing}
-              {...register("gender")}
-            />
-            {errors.gender && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.gender.message as string}
-              </p>
-            )}
-          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-5">
@@ -277,4 +235,4 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
   );
 };
 
-export default ProfileBasicDetails;
+export default ProfileBasicDetailsAdvertiser;

@@ -1,7 +1,7 @@
-import React from "react";
+import AdvertiserProfile from "@/components/organisms/advertiser/AdvertiserProfile";
 
 const page = () => {
-  return <div>Profile</div>;
+  return <AdvertiserProfile />;
 };
 
 export default page;
