@@ -38,6 +38,7 @@ export const ADMIN_ROUTES = {
   },
   CATEGORIES: {
     ROOT: `${ROOT}/categories`,
+    CREATE: `${ROOT}/categories/create`,
   },
   EARNINGS: {
     ROOT: `${ROOT}/earnings`,
