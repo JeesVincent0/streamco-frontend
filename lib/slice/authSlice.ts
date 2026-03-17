@@ -2,8 +2,14 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: { id: string; displayName: string; email: string; avatarUrl?: string } | null;
+  user: {
+    id: string;
+    displayName: string;
+    email: string;
+    avatarUrl?: string;
+  } | null;
   role: "USER" | "ADMIN" | "ADVERTISER" | null;
+  avatarUrl?: string | null;
 }
 
 const initialState: AuthState = {
@@ -19,7 +25,12 @@ export const authSclie = createSlice({
     setCredentials: (
       state,
       action: PayloadAction<{
-        user: { id: string; displayName: string; email: string; avatarUrl?: string };
+        user: {
+          id: string;
+          displayName: string;
+          email: string;
+          avatarUrl?: string;
+        };
         role: "USER" | "ADMIN" | "ADVERTISER";
       }>,
     ) => {

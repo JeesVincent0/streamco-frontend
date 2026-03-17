@@ -1,11 +1,5 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-const AdvertiserPage = () => {
-  return (
-    <div>
-      Something new
-    </div>
-  )
+export default function Advertiser() {
+  redirect("/home");
 }
-
-export default AdvertiserPage
