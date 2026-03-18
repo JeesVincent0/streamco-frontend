@@ -1,5 +1,5 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { authApi } from "./service";
+import { authApi, categoryApi } from "./service";
 import { userApi } from "./service";
 import authReducer from "./slice/authSlice";
 import { adminApi } from "./service/adminApi";
@@ -10,6 +10,7 @@ const rootReducer = combineReducers({
   [userApi.reducerPath]: userApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
+  [categoryApi.reducerPath]: categoryApi.reducer,
   auth: authReducer,
 });
 
@@ -21,6 +22,7 @@ export const store = configureStore({
       userApi.middleware,
       adminApi.middleware,
       settingApi.middleware,
+      categoryApi.middleware,
     ),
 });
 
