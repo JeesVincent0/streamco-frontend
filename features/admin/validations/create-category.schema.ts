@@ -9,10 +9,12 @@ export const categorySchema = z.object({
       /^[a-z0-9-]+$/,
       "Slug can only contain lowercase letters, numbers, and hyphens.",
     ),
+  // FIX: Allow empty strings when the textarea is left blank
   description: z
     .string()
     .max(500, "Description cannot exceed 500 characters.")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   status: z.enum(["ACTIVE", "BLOCKED"]),
 });
 

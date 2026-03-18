@@ -26,7 +26,21 @@ export const categoryApi = createApi({
       }),
       providesTags: ["categories"],
     }),
+
+    // update category status
+    updateCategoryStatus: builder.mutation({
+      query: ({ id, status }: { id: string; status: string }) => ({
+        url: `${ADMIN_ROUTES.CATEGORIES.UPDATE_STATUS(id)}`,
+        method: "POST",
+        data: { status },
+      }),
+      invalidatesTags: ["categories"],
+    }),
   }),
 });
 
-export const { useCreateCategoryMutation, useGetCategoriesQuery } = categoryApi;
+export const {
+  useCreateCategoryMutation,
+  useGetCategoriesQuery,
+  useUpdateCategoryStatusMutation,
+} = categoryApi;

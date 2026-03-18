@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   PlusIcon,
   MoreVerticalIcon,
-  EyeIcon,
   ChevronsUpDownIcon,
   ArrowUpIcon,
   ArrowDownIcon,
@@ -14,8 +13,9 @@ import {
   BanIcon,
   VideoIcon,
   CalendarIcon,
-  SearchIcon,
-  EditIcon,
+  XCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 
 import {
@@ -30,13 +30,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/atoms/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
 import { ADMIN_ROUTES } from "@/constants/routers";
+import {
+  useGetCategoriesQuery,
+  useUpdateCategoryStatusMutation,
+} from "@/lib/service";
+import Loading from "@/components/molecules/common/LoadingPage";
+import { toast } from "sonner";
+
+// ─── Types matching your Backend ──────────────────────────────────────────────
+type CategoriesType = {
+  id: string;
+  name: string;
+  status: string;
+  scheduledLiveCount: number;
+  liveCount: number;
+};
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ["", "ACTIVE", "BLOCKED"];
@@ -47,7 +60,6 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 // ─── Shared UI Atoms ──────────────────────────────────────────────────────────
-
 function Badge({ label, styleClass }: { label: string; styleClass: string }) {
   return (
     <span
@@ -85,41 +97,57 @@ function ActiveDot() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 const CategoriesTable = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [updateCategoryStatus, { isLoading: isStatusUpdating }] =
+    useUpdateCategoryStatusMutation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Loading state (Connect to your RTK Query hook later)
-  const isLoading = false;
-
+  // 1. Build Query Params matching GetCategoriesDto
+  // 1. Build Query Params matching GetCategoriesDto
   const queryArgs = useMemo(
     () => ({
-      sortBy: searchParams.get("sortBy") || "name",
-      order: searchParams.get("order") || "asc",
+      page: Number(searchParams.get("page")) || 1,
+      limit: Number(searchParams.get("limit")) || 10,
+      sortBy:
+        (searchParams.get("sortBy") as
+          | "name"
+          | "slug"
+          | "liveCount"
+          | "scheduledLiveCount") || "name",
+      order: (searchParams.get("order") as "asc" | "desc") || "asc",
       status: searchParams.get("status") || "",
+
       search: searchParams.get("search") || "",
     }),
     [searchParams],
   );
 
-  // Mock Data
-  const categories = [
-    { id: "1", name: "Gaming", status: "ACTIVE", scheduled: 12, lives: 45 },
-    {
-      id: "2",
-      name: "Just Chatting",
-      status: "ACTIVE",
-      scheduled: 5,
-      lives: 128,
-    },
-    { id: "3", name: "Politics", status: "BLOCKED", scheduled: 0, lives: 0 },
-  ];
+  // 2. Fetch Data using RTK Query
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useGetCategoriesQuery(queryArgs);
+
+  // Extract data array safely
+  const categories: CategoriesType[] = response?.data?.categories || [];
+
+  // Extract pagination data safely
+  const currentPage = response?.data?.pagination?.page || queryArgs.page;
+  const totalPages = response?.data?.pagination?.totalPages || 1;
 
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, val]) => {
       val === "" ? params.delete(key) : params.set(key, val);
     });
+
+    // Always reset to page 1 when changing filters/sorting (but NOT when just changing the page)
+    if (updates.sortBy || updates.status || updates.order) {
+      params.set("page", "1");
+    }
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -133,13 +161,31 @@ const CategoriesTable = () => {
     });
   };
 
-  if (isLoading) return <TableLoadingSkelton />;
+  const handlePageChange = (newPage: number) => {
+    updateParams({ page: newPage.toString() });
+  };
+
+  // 3. Handle Status Toggle logic
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+    try {
+      await updateCategoryStatus({ id, status: newStatus });
+    } catch (error) {
+      toast.error(error.data.data.message || "Something went wrong");
+    }
+
+    setOpenMenuId(null);
+  };
+
+  // Loading State
+  if (isLoading || isFetching) return <TableLoadingSkelton />;
 
   const headBtnCls =
-    "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors";
+    "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors w-full";
 
+  if (isStatusUpdating) return <Loading message="Updating..." />;
   return (
-    <div className="mx-auto w-full max-w-287.5 space-y-6 px-4 py-8">
+    <div className="mx-auto w-full `max-w-287.5space-y-6 px-4 py-8">
       {/* Top Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <Button asChild size="sm" className="h-9 gap-2 px-4">
@@ -205,12 +251,34 @@ const CategoriesTable = () => {
                   </DropdownMenu>
                 </TableHead>
 
-                {/* Stats */}
-                <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Scheduled
+                {/* Scheduled Stats */}
+                <TableHead>
+                  <button
+                    onClick={() => handleSort("scheduledLiveCount")}
+                    className={`${headBtnCls} justify-center`}
+                  >
+                    Scheduled{" "}
+                    <SortIcon
+                      field="scheduledLiveCount"
+                      currentSortBy={queryArgs.sortBy}
+                      currentOrder={queryArgs.order}
+                    />
+                  </button>
                 </TableHead>
-                <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Live Now
+
+                {/* Live Stats */}
+                <TableHead>
+                  <button
+                    onClick={() => handleSort("liveCount")}
+                    className={`${headBtnCls} justify-center`}
+                  >
+                    Live Now{" "}
+                    <SortIcon
+                      field="liveCount"
+                      currentSortBy={queryArgs.sortBy}
+                      currentOrder={queryArgs.order}
+                    />
+                  </button>
                 </TableHead>
 
                 {/* Actions */}
@@ -221,80 +289,156 @@ const CategoriesTable = () => {
             </TableHeader>
 
             <TableBody>
-              {categories.map((cat) => (
-                <TableRow
-                  key={cat.id}
-                  className="border-b border-border hover:bg-muted/30 transition-colors"
-                >
-                  <TableCell className="py-4 text-sm font-medium text-foreground whitespace-nowrap">
-                    {cat.name}
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge
-                      label={cat.status}
-                      styleClass={
-                        STATUS_STYLES[cat.status] ??
-                        "bg-muted text-muted-foreground border border-border"
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-center whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                      <CalendarIcon className="size-3.5" /> {cat.scheduled}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="text-center whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-500">
-                      <VideoIcon className="size-3.5 animate-pulse" />{" "}
-                      {cat.lives}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <DropdownMenu
-                      open={openMenuId === cat.id}
-                      onOpenChange={(val) => setOpenMenuId(val ? cat.id : null)}
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-muted-foreground hover:text-foreground"
-                        >
-                          <MoreVerticalIcon className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-44">
-                        <DropdownMenuItem className="cursor-pointer gap-2">
-                          <EyeIcon className="size-4" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer gap-2">
-                          <EditIcon className="size-4" /> Edit Category
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className={
-                            cat.status === "ACTIVE"
-                              ? "text-destructive focus:text-destructive focus:bg-destructive/10"
-                              : "text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
-                          }
-                        >
-                          <BanIcon className="size-4 mr-2" />
-                          {cat.status === "ACTIVE"
-                            ? "Block Category"
-                            : "Unblock Category"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 text-center text-muted-foreground"
+                  >
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <XCircleIcon className="size-8 text-muted-foreground/40" />
+                      <p>No categories found.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                categories.map((cat) => (
+                  <TableRow
+                    key={cat.id}
+                    className="border-b border-border hover:bg-muted/30 transition-colors"
+                  >
+                    <TableCell className="py-4 text-sm font-medium text-foreground whitespace-nowrap">
+                      {cat.name}
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge
+                        label={cat.status}
+                        styleClass={
+                          STATUS_STYLES[cat.status] ??
+                          "bg-muted text-muted-foreground border border-border"
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell className="text-center whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center gap-1 text-sm text-muted-foreground w-full">
+                        <CalendarIcon className="size-3.5" />{" "}
+                        {cat.scheduledLiveCount}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-center whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center gap-1 text-sm font-semibold text-red-500 w-full">
+                        <VideoIcon className="size-3.5 animate-pulse" />{" "}
+                        {cat.liveCount}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <DropdownMenu
+                        open={openMenuId === cat.id}
+                        onOpenChange={(val) =>
+                          setOpenMenuId(val ? cat.id : null)
+                        }
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground hover:text-foreground"
+                          >
+                            <MoreVerticalIcon className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-44">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleToggleStatus(cat.id, cat.status)
+                            }
+                            className={`cursor-pointer ${
+                              cat.status === "ACTIVE"
+                                ? "text-destructive focus:text-destructive focus:bg-destructive/10"
+                                : "text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
+                            }`}
+                          >
+                            <BanIcon className="size-4 mr-2" />
+                            {cat.status === "ACTIVE"
+                              ? "Block Category"
+                              : "Unblock Category"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
+
+        {/* ─── Pagination Controls ─── */}
+        {totalPages > 0 && (
+          <div className="flex items-center justify-between border-t border-border px-4 py-3 sm:px-6">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Showing page{" "}
+                  <span className="font-medium text-foreground">
+                    {currentPage}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-foreground">
+                    {totalPages}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <nav
+                  className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                  aria-label="Pagination"
+                >
+                  <Button
+                    variant="outline"
+                    className="rounded-l-md rounded-r-none px-2 focus:z-20"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                  >
+                    <span className="sr-only">Previous</span>
+                    <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-l-none rounded-r-md px-2 focus:z-20"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                  >
+                    <span className="sr-only">Next</span>
+                    <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

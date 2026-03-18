@@ -51,6 +51,9 @@ const CreateCategoryForm = () => {
     }
   };
 
+  // ─── FIX: Extract the native onChange so we don't overwrite it ───
+  const { onChange: formNameOnChange, ...restNameRegister } = register("name");
+
   if (isSubmitting) return <Loading message="Creating category..." />;
 
   return (
@@ -82,9 +85,12 @@ const CreateCategoryForm = () => {
                 label="Category Name *"
                 placeholder="e.g., Gaming, Just Chatting..."
                 readOnly={false}
-                {...register("name")}
+                {...restNameRegister} // Spread the ref, name, and onBlur here
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  register("name").onChange(e);
+                  // 1. Tell React Hook Form the value changed
+                  formNameOnChange(e);
+
+                  // 2. Generate and set the slug
                   const newName = e.target.value;
                   const generatedSlug = newName
                     .toLowerCase()
