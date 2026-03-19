@@ -20,4 +20,7 @@ export const USER_ROUTES = {
   FEEDBACK: {
     ROOT: `/feedback`,
   },
+  CHANNEL: {
+    CREATE: `/create-channel`,
+  },
 };
