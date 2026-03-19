@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useCreateChannelMutation } from "@/lib/service/user-api/channelApi";
+import { useRouter } from "next/navigation";
+import { USER_ROUTES } from "@/constants/routers";
 
 // ─── Helper: Crop Image Generator ──────────────────────────────────────────────
 const getCroppedImg = async (
@@ -47,7 +49,8 @@ const getCroppedImg = async (
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-const CreateChannelForm = ({ onClose }: { onClose?: () => void }) => {
+const CreateChannelForm = () => {
+  const router = useRouter();
   const [createChannel] = useCreateChannelMutation();
   const {
     register,
@@ -123,19 +126,19 @@ const CreateChannelForm = ({ onClose }: { onClose?: () => void }) => {
 
   const onSubmit = async (data: CreateChannelValues) => {
     try {
-      // .unwrap() is crucial! It throws the error to the catch block if the backend fails
       await createChannel(data).unwrap();
-
       toast.success("Channel created successfully!");
-
-      // Close the modal after successful creation
-      if (onClose) onClose();
+      router.push(USER_ROUTES.SETTINGS.CHANNELS);
     } catch (error: any) {
       console.error("Failed to create channel:", error);
       toast.error(
         error?.data?.message || "Failed to create channel. Please try again.",
       );
     }
+  };
+
+  const onClose = () => {
+    router.back();
   };
 
   // ─── Updated Styles matching ProfileHeader ───

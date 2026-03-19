@@ -1,11 +1,8 @@
-import React from 'react'
+import ChannelList from "@/components/organisms/user/ChannelList";
+import React from "react";
 
 const Channels = () => {
-  return (
-    <div className='flex items-center justify-center h-full text-2xl font-bold text-gray-500'>
-      Channels Coming Soon
-    </div>
-  )
-}
+  return <ChannelList />;
+};
 
-export default Channels
+export default Channels;

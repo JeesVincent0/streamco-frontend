@@ -1,4 +1,3 @@
-import { ADMIN_ROUTES } from "@/constants/routers";
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
@@ -18,8 +17,16 @@ export const channelApi = createApi({
       invalidatesTags: ["channels"],
     }),
 
-    // You can add your getChannels query here later
+    // ─── GET CHANNELS QUERY ───
+    getChannels: builder.query({
+      query: (params: { page: number; limit: number; search?: string }) => ({
+        url: `/channels`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["channels"],
+    }),
   }),
 });
 
-export const { useCreateChannelMutation } = channelApi;
+export const { useCreateChannelMutation, useGetChannelsQuery } = channelApi;
