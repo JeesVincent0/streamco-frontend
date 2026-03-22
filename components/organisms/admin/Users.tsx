@@ -1,6 +1,6 @@
 import { SidebarTrigger } from "@/components/atoms/sidebar";
 import UsersTable from "@/components/molecules/admin/UsersTable";
-import PaginationMolecule from "@/components/molecules/common/PaginationMolecule";
+import PaginationMolecule from "@/components/molecules/table/PaginationMolecule";
 import { ADMIN_ROUTES } from "@/constants/routers";
 import Link from "next/link";
 

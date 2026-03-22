@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../axiosBaseQuery";
+import { UserProfileInterface } from "../interfaces";
 
 export const adminApi = createApi({
   reducerPath: "adminApi",
@@ -29,14 +30,22 @@ export const adminApi = createApi({
       ],
     }),
 
-    // Get single user
     getUserById: builder.query({
-      query: (userId) => ({
-        url: `/admin/users/${userId}`,
+      query: (id) => ({
+        url: `/user/profile/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, userId) => [{ type: "User", id: userId }],
     }),
+
+    // // Get single user
+    // getUserById: builder.query({
+    //   query: (userId) => ({
+    //     url: `/admin/users/${userId}`,
+    //     method: "GET",
+    //   }),
+    //   providesTags: (result, error, userId) => [{ type: "User", id: userId }],
+    // }),
   }),
 });
 

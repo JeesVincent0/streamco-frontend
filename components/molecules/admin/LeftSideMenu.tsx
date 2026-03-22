@@ -51,6 +51,11 @@ const LeftSideMenu = () => {
       path: ADMIN_ROUTES.EARNINGS.ROOT,
       icon: <Landmark className={sideButtonRootClass} />,
     },
+    {
+      name: "Test",
+      path: ADMIN_ROUTES.TEST.ROOT,
+      icon: <Landmark className={sideButtonRootClass} />,
+    },
   ];
   return (
     <SidebarMenu className="gap-2">
