@@ -137,12 +137,14 @@ const UsersTable = () => {
     email: string,
   ) => {
     try {
-      await updateUserStatus({ userId, status }).unwrap();
+      await updateUserStatus({
+        userId,
+        status,
+        queryArgs,
+      }).unwrap();
+
       toast.success(`User ${email} status updated to ${status}`);
       setOpenMenuId(null);
-      router.push(
-        `${ADMIN_ROUTES.USERS.QUERY(queryArgs.page, queryArgs.limit, queryArgs.sortBy, queryArgs.order, queryArgs.role, queryArgs.status, queryArgs.search, queryArgs.isVerified)}`,
-      );
     } catch {
       toast.error(`Failed to update user ${email} status`);
     }

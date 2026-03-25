@@ -17,6 +17,7 @@ import {
 import UpdateEmailOtpVerification from "./UpdateEmailOtpVerification";
 import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
+import { UserGender } from "@/constants/enums";
 
 interface ProfileBasicDetailsProps {
   data: {
@@ -62,11 +63,15 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
 
   // Sync external data changes to the form
   useEffect(() => {
+    const isValidGender = Object.values(UserGender).includes(
+      data.gender as UserGender,
+    );
+
     reset({
       displayName: data.displayName,
       bio: data.bio,
       dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender || "",
+      gender: isValidGender ? data.gender : "", // Fallback to "" if null or invalid
       email: data.email,
     });
   }, [data, reset]);
@@ -231,12 +236,49 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
               </p>
             )}
           </div>
-          <div>
-            <InputGroup
-              label="Gender"
-              readOnly={!isEditing}
-              {...register("gender")}
-            />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              Gender
+            </label>
+            <div className="relative">
+              <select
+                {...register("gender")}
+                disabled={!isEditing}
+                className={`w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] appearance-none ${
+                  !isEditing
+                    ? "bg-neutral-100 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/5 text-neutral-500 cursor-not-allowed"
+                    : "bg-neutral-50 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white cursor-pointer"
+                }`}
+              >
+                {/* This option shows if gender is "" or null */}
+                <option value="" disabled>
+                  Select Gender
+                </option>
+                <option value={UserGender.MALE}>Male</option>
+                <option value={UserGender.FEMALE}>Female</option>
+                <option value={UserGender.NON_BINARY}>Non Binary</option>
+                <option value={UserGender.PREFER_NOT_TO_SAY}>
+                  Prefer not to say
+                </option>
+              </select>
+
+              {/* Custom Arrow Icon (Optional, adds visual clarity that it's a dropdown) */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
             {errors.gender && (
               <p className="text-xs text-red-500 mt-1">
                 {errors.gender.message as string}

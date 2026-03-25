@@ -166,12 +166,22 @@ const CategoriesTable = () => {
   };
 
   // 3. Handle Status Toggle logic
+  // Inside CategoriesTable component...
+
   const handleToggleStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+
     try {
-      await updateCategoryStatus({ id, status: newStatus });
-    } catch (error) {
-      toast.error(error.data.data.message || "Something went wrong");
+      // Pass queryArgs along with id and status
+      await updateCategoryStatus({
+        id,
+        status: newStatus,
+        queryArgs,
+      }).unwrap();
+
+      toast.success("Status updated successfully");
+    } catch (error: any) {
+      toast.error(error?.data?.data?.message || "Something went wrong");
     }
 
     setOpenMenuId(null);
