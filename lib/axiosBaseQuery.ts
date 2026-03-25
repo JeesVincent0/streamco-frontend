@@ -14,41 +14,39 @@ export const axiosBaseQuery =
     unknown
   > =>
   async ({ url, method, data, params }, api) => {
+    // Extract signal from the api object
+    const { signal } = api;
+
     try {
       const result = await axiosIntance({
         url,
         method,
         data,
         params,
+        signal, // ─── Pass signal here ───
       });
 
       return { data: result.data };
     } catch (axiosError: any) {
       const status = axiosError.response?.status;
 
-      // access token expired
       if (status === 401) {
         try {
-          // call refresh endpoint
           await axiosIntance.post("/auth/refresh-token");
 
-          // retry original request
           const retryResult = await axiosIntance({
             url,
             method,
             data,
             params,
+            signal, // ─── Pass signal here too ───
           });
 
           return { data: retryResult.data };
         } catch {
           api.dispatch(logout());
-
           return {
-            error: {
-              status: 401,
-              data: "Session expired",
-            },
+            error: { status: 401, data: "Session expired" },
           };
         }
       }

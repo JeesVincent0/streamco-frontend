@@ -5,7 +5,6 @@ import { SearchIcon } from "lucide-react";
 import { useGetChannelsQuery } from "@/lib/service/user-api/channelApi";
 import UserAvatar from "@/components/atoms/UserAvatar";
 
-// Helper function to format numbers (e.g., 1500 -> 1.5K, 1600000 -> 1.6M)
 const formatSubscribers = (count: number | undefined) => {
   if (!count) return "0";
   return Intl.NumberFormat("en-US", {
@@ -15,22 +14,20 @@ const formatSubscribers = (count: number | undefined) => {
 };
 
 const ChannelList = () => {
-  // ─── STATE & SEARCH DEBOUNCE ───
+
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const limit = 10;
 
-  // Wait 500ms after the user stops typing to fetch
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 on new search
+      setPage(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // ─── API CALL ───
   const { data, isLoading, isFetching } = useGetChannelsQuery({
     page,
     limit,
