@@ -8,14 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/atoms/dropdown-menu";
 import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/atoms/table";
+import { TableRow, TableCell } from "@/components/atoms/table";
 import { Button } from "@/components/ui/button";
 import { ADMIN_ROUTES } from "@/constants/routers/admin/admin-routes.constants";
 import {
@@ -23,11 +16,7 @@ import {
   useUpdateUserStatusMutation,
 } from "@/lib/service/adminApi";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronsUpDownIcon,
   MoreVerticalIcon,
-  CheckIcon,
   BadgeCheckIcon,
   XCircleIcon,
 } from "lucide-react";
@@ -36,6 +25,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import Loading from "../common/LoadingPage";
+import ReusableTable from "../table/ReusableTable";
+import { TableColumn } from "../table/types";
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 const ROLE_OPTIONS = ["", "USER", "ADVERTISER"];
@@ -84,29 +75,15 @@ function VerifiedBadge({ value }: { value: boolean }) {
   );
 }
 
-function SortIcon({
-  field,
-  currentSortBy,
-  currentOrder,
-}: {
-  field: string;
-  currentSortBy: string;
-  currentOrder: string;
-}) {
-  if (currentSortBy !== field)
-    return <ChevronsUpDownIcon className="size-3.5 text-muted-foreground/60" />;
-  return currentOrder === "asc" ? (
-    <ArrowUpIcon className="size-3.5 text-primary" />
-  ) : (
-    <ArrowDownIcon className="size-3.5 text-primary" />
-  );
-}
-
-function ActiveDot() {
-  return (
-    <span className="ml-1 inline-block size-1.5 rounded-full bg-primary align-middle" />
-  );
-}
+// ─── User Type ────────────────────────────────────────────────────────────────
+type UserData = {
+  id: string;
+  displayName: string;
+  email: string;
+  status: string;
+  isVerified: boolean;
+  role: string;
+};
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const UsersTable = () => {
@@ -151,7 +128,8 @@ const UsersTable = () => {
   };
 
   const { data, isLoading, isFetching } = useGetUsersQuery(queryArgs);
-  const users = data?.data?.users ?? [];
+  const users: UserData[] = data?.data?.users ?? [];
+  const { totalPages } = data?.data?.pagination ?? { totalPages: 0 };
 
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -188,306 +166,192 @@ const UsersTable = () => {
     );
   }
 
-  // ─── Shared column header button styles ───────────────────────────────────
-  const headBtnCls =
-    "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors";
+  // ─── Columns Configuration ────────────────────────────────────────────────
+  const columns: TableColumn[] = [
+    {
+      name: "Name",
+      field: "displayName",
+      sortable: true,
+    },
+    {
+      name: "Email",
+      field: "email",
+      sortable: true,
+    },
+    {
+      name: "Status",
+      field: "status",
+      filterOptions: STATUS_OPTIONS.map((opt) => ({
+        label: opt || "All",
+        value: opt,
+        styleClass: STATUS_STYLES[opt] ?? "",
+      })),
+    },
+    {
+      name: "Verified",
+      field: "isVerified",
+      filterOptions: VERIFIED_OPTIONS.map((opt) => ({
+        label: opt.label,
+        value: opt.value,
+      })),
+    },
+    {
+      name: "Role",
+      field: "role",
+      filterOptions: ROLE_OPTIONS.map((opt) => ({
+        label: opt || "All",
+        value: opt,
+        styleClass: ROLE_STYLES[opt] ?? "",
+      })),
+    },
+    {
+      name: "Actions",
+      align: "right",
+      className: "w-[100px]",
+    },
+  ];
+
+  const renderRow = (user: UserData) => (
+    <TableRow
+      key={user.id}
+      className="border-b border-border hover:bg-muted/30 transition-colors"
+    >
+      {/* Name */}
+      <TableCell>
+        <span className="text-sm font-medium text-foreground">
+          {user.displayName}
+        </span>
+      </TableCell>
+
+      {/* Email */}
+      <TableCell>
+        <span className="text-sm text-muted-foreground">{user.email}</span>
+      </TableCell>
+
+      {/* Status — colored badge */}
+      <TableCell>
+        <Badge
+          label={user.status}
+          styleClass={
+            STATUS_STYLES[user.status] ??
+            "bg-muted text-muted-foreground border border-border"
+          }
+        />
+      </TableCell>
+
+      {/* Verified */}
+      <TableCell>
+        <VerifiedBadge value={user.isVerified} />
+      </TableCell>
+
+      {/* Role — colored badge */}
+      <TableCell>
+        <Badge
+          label={user.role}
+          styleClass={
+            ROLE_STYLES[user.role] ??
+            "bg-muted text-muted-foreground border border-border"
+          }
+        />
+      </TableCell>
+
+      {/* Actions */}
+      <TableCell className="text-right">
+        <DropdownMenu
+          open={openMenuId === user.id}
+          onOpenChange={(val) => setOpenMenuId(val ? user.id : null)}
+        >
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+            >
+              <MoreVerticalIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="min-w-40">
+            <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
+              <DropdownMenuItem className="cursor-pointer text-sm">
+                View Details
+              </DropdownMenuItem>
+            </Link>
+
+            <DropdownMenuSeparator />
+
+            {user.status === "DELETED" && (
+              <>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
+                  onClick={() => handleAction(user.id, "SUSPENDED", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Suspend"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
+                  onClick={() => handleAction(user.id, "ACTIVE", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Activate"}
+                </DropdownMenuItem>
+              </>
+            )}
+
+            {user.status === "ACTIVE" && (
+              <>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
+                  onClick={() => handleAction(user.id, "SUSPENDED", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Suspend"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
+                  onClick={() => handleAction(user.id, "DELETED", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Delete"}
+                </DropdownMenuItem>
+              </>
+            )}
+
+            {user.status === "SUSPENDED" && (
+              <>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
+                  onClick={() => handleAction(user.id, "ACTIVE", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Activate"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isUpdating}
+                  className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
+                  onClick={() => handleAction(user.id, "DELETED", user.email)}
+                >
+                  {isUpdating ? "Updating..." : "Delete"}
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <Table>
-        {/* ── Header ── */}
-        <TableHeader>
-          <TableRow className="bg-muted/50 hover:bg-muted/50 border-b border-border">
-            {/* Name */}
-            <TableHead>
-              <button
-                onClick={() => handleSort("displayName")}
-                className={headBtnCls}
-              >
-                Name{" "}
-                <SortIcon
-                  field="displayName"
-                  currentSortBy={queryArgs.sortBy}
-                  currentOrder={queryArgs.order}
-                />
-              </button>
-            </TableHead>
-
-            {/* Email */}
-            <TableHead>
-              <button
-                onClick={() => handleSort("email")}
-                className={headBtnCls}
-              >
-                Email{" "}
-                <SortIcon
-                  field="email"
-                  currentSortBy={queryArgs.sortBy}
-                  currentOrder={queryArgs.order}
-                />
-              </button>
-            </TableHead>
-
-            {/* Status */}
-            <TableHead>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={headBtnCls}>
-                    Status
-                    {queryArgs.status && <ActiveDot />}
-                    <ChevronsUpDownIcon className="size-3.5 text-muted-foreground/60" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-40">
-                  {STATUS_OPTIONS.map((opt) => (
-                    <DropdownMenuItem
-                      key={opt || "all-status"}
-                      className="flex items-center justify-between cursor-pointer"
-                      onClick={() => handleFilter("status", opt)}
-                    >
-                      {opt ? (
-                        <Badge
-                          label={opt}
-                          styleClass={STATUS_STYLES[opt] ?? ""}
-                        />
-                      ) : (
-                        <span className="text-sm">All</span>
-                      )}
-                      {queryArgs.status === opt && (
-                        <CheckIcon className="size-3.5 text-primary ml-2" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableHead>
-
-            {/* Verified */}
-            <TableHead>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={headBtnCls}>
-                    Verified
-                    {queryArgs.isVerified != null &&
-                      queryArgs.isVerified !== "" && <ActiveDot />}
-                    <ChevronsUpDownIcon className="size-3.5 text-muted-foreground/60" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-36">
-                  {VERIFIED_OPTIONS.map(({ label, value }) => (
-                    <DropdownMenuItem
-                      key={label}
-                      className="flex items-center justify-between cursor-pointer text-sm"
-                      onClick={() => handleFilter("isVerified", value)}
-                    >
-                      {label}
-                      {(queryArgs.isVerified ?? "") === value && (
-                        <CheckIcon className="size-3.5 text-primary ml-2" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableHead>
-
-            {/* Role */}
-            <TableHead>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={headBtnCls}>
-                    Role
-                    {queryArgs.role && <ActiveDot />}
-                    <ChevronsUpDownIcon className="size-3.5 text-muted-foreground/60" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-40">
-                  {ROLE_OPTIONS.map((opt) => (
-                    <DropdownMenuItem
-                      key={opt || "all-roles"}
-                      className="flex items-center justify-between cursor-pointer"
-                      onClick={() => handleFilter("role", opt)}
-                    >
-                      {opt ? (
-                        <Badge
-                          label={opt}
-                          styleClass={ROLE_STYLES[opt] ?? ""}
-                        />
-                      ) : (
-                        <span className="text-sm">All</span>
-                      )}
-                      {queryArgs.role === opt && (
-                        <CheckIcon className="size-3.5 text-primary ml-2" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableHead>
-
-            <TableHead className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        {/* ── Body ── */}
-        <TableBody>
-          {users.map(
-            (user: {
-              id: string;
-              displayName: string;
-              email: string;
-              status: string;
-              isVerified: boolean;
-              role: string;
-            }) => (
-              <TableRow
-                key={user.id}
-                className="border-b border-border hover:bg-muted/30 transition-colors"
-              >
-                {/* Name */}
-                <TableCell>
-                  <span className="text-sm font-medium text-foreground">
-                    {user.displayName}
-                  </span>
-                </TableCell>
-
-                {/* Email */}
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {user.email}
-                  </span>
-                </TableCell>
-
-                {/* Status — colored badge */}
-                <TableCell>
-                  <Badge
-                    label={user.status}
-                    styleClass={
-                      STATUS_STYLES[user.status] ??
-                      "bg-muted text-muted-foreground border border-border"
-                    }
-                  />
-                </TableCell>
-
-                {/* Verified */}
-                <TableCell>
-                  <VerifiedBadge value={user.isVerified} />
-                </TableCell>
-
-                {/* Role — colored badge */}
-                <TableCell>
-                  <Badge
-                    label={user.role}
-                    styleClass={
-                      ROLE_STYLES[user.role] ??
-                      "bg-muted text-muted-foreground border border-border"
-                    }
-                  />
-                </TableCell>
-
-                {/* Actions */}
-                <TableCell className="text-right">
-                  <DropdownMenu
-                    open={openMenuId === user.id}
-                    onOpenChange={(val) => setOpenMenuId(val ? user.id : null)}
-                  >
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:text-foreground"
-                      >
-                        <MoreVerticalIcon className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" className="min-w-40">
-                      <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
-                        <DropdownMenuItem className="cursor-pointer text-sm">
-                          View Details
-                        </DropdownMenuItem>
-                      </Link>
-
-                      <DropdownMenuSeparator />
-
-                      {user.status === "DELETED" && (
-                        <>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
-                            onClick={() =>
-                              handleAction(user.id, "SUSPENDED", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Suspend"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
-                            onClick={() =>
-                              handleAction(user.id, "ACTIVE", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Activate"}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-
-                      {user.status === "ACTIVE" && (
-                        <>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
-                            onClick={() =>
-                              handleAction(user.id, "SUSPENDED", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Suspend"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-                            onClick={() =>
-                              handleAction(user.id, "DELETED", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Delete"}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-
-                      {user.status === "SUSPENDED" && (
-                        <>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
-                            onClick={() =>
-                              handleAction(user.id, "ACTIVE", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Activate"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={isUpdating}
-                            className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-                            onClick={() =>
-                              handleAction(user.id, "DELETED", user.email)
-                            }
-                          >
-                            {isUpdating ? "Updating..." : "Delete"}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ),
-          )}
-        </TableBody>
-      </Table>
-    </div>
+    <ReusableTable
+      columns={columns}
+      data={users}
+      renderRow={renderRow}
+      queryArgs={queryArgs}
+      onSort={handleSort}
+      onFilter={handleFilter}
+      totalPages={totalPages}
+    />
   );
 };
 

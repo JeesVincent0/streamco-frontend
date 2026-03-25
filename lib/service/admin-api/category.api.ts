@@ -23,7 +23,7 @@ export const categoryApi = createApi({
     }),
 
     updateCategoryStatus: builder.mutation({
-      query: ({ id, status }: { id: string; status: string }) => ({
+      query: ({ id, status }: { id: string; status: string; queryArgs?: any }) => ({
         url: `${ADMIN_ROUTES.CATEGORIES.UPDATE_STATUS(id)}`,
         method: "POST",
         data: { status },
