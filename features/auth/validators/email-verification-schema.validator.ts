@@ -1,5 +1,5 @@
 import { z } from "zod";
 
 export const emailVerificationSchema = z.object({
-  email: z.email("Enter valid email"),
+  email: z.string().trim().email("Enter valid email"),
 });
