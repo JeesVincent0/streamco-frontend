@@ -27,7 +27,10 @@ export const axiosBaseQuery =
       });
 
       return { data: result.data };
-    } catch (axiosError: any) {
+    } catch (error: unknown) {
+      const axiosError = error as {
+        response: { status: number; data: unknown };
+      };
       const status = axiosError.response?.status;
 
       if (status === 401) {

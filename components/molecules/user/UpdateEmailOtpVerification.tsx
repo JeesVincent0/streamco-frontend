@@ -10,8 +10,6 @@ import {
 import { toast } from "sonner";
 import Loading from "../common/LoadingPage";
 import { useVerifyOtpMutation } from "@/lib/service/user-api/settingsApi";
-import { useRouter } from "next/navigation";
-import { USER_ROUTES } from "@/constants/routers";
 import { useResendOtpMutation } from "@/lib/service";
 
 interface OtpVerificationProps {
@@ -23,11 +21,9 @@ interface OtpVerificationProps {
 const OTP_LENGTH = 6;
 
 const UpdateEmailOtpVerification = ({
-  email,
   onSuccess,
   onCancel,
 }: OtpVerificationProps) => {
-  const router = useRouter();
   const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -120,8 +116,9 @@ const UpdateEmailOtpVerification = ({
 
       toast.success("Email verified successfully!");
       onSuccess();
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Invalid code.");
+    } catch (error: unknown) {
+      const err = error as { data: { message: string } };
+      toast.error(err?.data?.message);
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +142,8 @@ const UpdateEmailOtpVerification = ({
       toast.success("New code sent!");
       setOtp(new Array(OTP_LENGTH).fill(""));
       inputRefs.current[0]?.focus();
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as { data: { message: string } };
       toast.error(err?.data?.message || "Failed to resend.");
     }
   };

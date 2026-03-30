@@ -12,7 +12,11 @@ export function ToggleTheme() {
 
   // Ensure the component is mounted on the client before rendering theme-specific icons
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleTheme = () => {

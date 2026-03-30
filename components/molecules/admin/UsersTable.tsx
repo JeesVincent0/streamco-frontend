@@ -15,11 +15,7 @@ import {
   useGetUsersQuery,
   useUpdateUserStatusMutation,
 } from "@/lib/service/adminApi";
-import {
-  MoreVerticalIcon,
-  BadgeCheckIcon,
-  XCircleIcon,
-} from "lucide-react";
+import { MoreVerticalIcon, BadgeCheckIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -134,7 +130,11 @@ const UsersTable = () => {
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, val]) => {
-      val === "" || val === null ? params.delete(key) : params.set(key, val);
+      if (val === "" || val === null) {
+        params.delete(key);
+      } else {
+        params.set(key, val);
+      }
     });
     params.set("page", "1");
     router.push(`${pathname}?${params.toString()}`);

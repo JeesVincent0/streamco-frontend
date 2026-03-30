@@ -82,6 +82,8 @@ const CategoriesTable = () => {
       order: (searchParams.get("order") as "asc" | "desc") || "asc",
       status: searchParams.get("status") || "",
       search: searchParams.get("search") || "",
+      role: "",
+      isVerified: null,
     }),
     [searchParams],
   );
@@ -102,7 +104,11 @@ const CategoriesTable = () => {
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, val]) => {
-      val === "" ? params.delete(key) : params.set(key, val);
+      if (val === "" || val === null) {
+        params.delete(key);
+      } else {
+        params.set(key, String(val));
+      }
     });
 
     // Always reset to page 1 when changing filters/sorting
@@ -250,7 +256,7 @@ const CategoriesTable = () => {
   );
 
   return (
-    <div className="mx-auto w-full max-w-[287.5rem] space-y-6 px-4 py-8">
+    <div className="mx-auto w-full max-w-1150 space-y-6 px-4 py-8">
       {/* Top Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <Button asChild size="sm" className="h-9 gap-2 px-4">

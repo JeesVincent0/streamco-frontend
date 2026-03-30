@@ -1,5 +1,7 @@
+import { FieldValues, UseFormRegister } from "react-hook-form";
+
 type Props = {
-  register: any;
+  register: UseFormRegister<FieldValues>;
   name: string;
   error: string | undefined;
 };
@@ -21,9 +23,7 @@ const SelectField = ({ register, name, error }: Props) => {
         className="mt-1 h-8 border border-white/45 w-full rounded-sm p-2 text-sm text-white/80 bg-transparent placeholder:text-white/30"
         defaultValue=""
       >
-        <option className="bg-[#1F1F1F]" value="" disabled>
-         
-        </option>
+        <option className="bg-[#1F1F1F]" value="" disabled></option>
         <option className="bg-[#2A2A2A]" value="MALE">
           Male
         </option>

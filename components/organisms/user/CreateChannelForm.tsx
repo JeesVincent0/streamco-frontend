@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { XIcon, PlusIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
+import Image from "next/image";
 
 import {
   createChannelSchema,
@@ -18,11 +19,13 @@ import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
 
 // ─── Helper: Crop Image Generator ──────────────────────────────────────────────
+// ─── Helper: Crop Image Generator ──────────────────────────────────────────────
 const getCroppedImg = async (
   imageSrc: string,
   pixelCrop: Area,
 ): Promise<string> => {
-  const image = new Image();
+  // Use window.Image to distinguish it from the Next.js Image component
+  const image = new window.Image();
   image.src = imageSrc;
   await new Promise((resolve) => (image.onload = resolve));
 
@@ -52,11 +55,12 @@ const getCroppedImg = async (
 const CreateChannelForm = () => {
   const router = useRouter();
   const [createChannel] = useCreateChannelMutation();
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control, // Added control for useWatch
     formState: { errors, isSubmitting },
   } = useForm<CreateChannelValues>({
     resolver: zodResolver(createChannelSchema),
@@ -69,8 +73,9 @@ const CreateChannelForm = () => {
     },
   });
 
-  const profileImagePreview = watch("profileImage");
-  const bannerPreview = watch("backgroundBanner");
+  // Fixed React Compiler Warning by using useWatch instead of watch()
+  const profileImagePreview = useWatch({ control, name: "profileImage" });
+  const bannerPreview = useWatch({ control, name: "backgroundBanner" });
 
   // ─── Cropper State ───
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -129,11 +134,9 @@ const CreateChannelForm = () => {
       await createChannel(data).unwrap();
       toast.success("Channel created successfully!");
       router.push(USER_ROUTES.SETTINGS.CHANNELS);
-    } catch (error: any) {
-      console.error("Failed to create channel:", error);
-      toast.error(
-        error?.data?.message || "Failed to create channel. Please try again.",
-      );
+    } catch (err: unknown) {
+      const error = err as { data: { message: string } };
+      toast.error(error?.data?.message);
     }
   };
 
@@ -141,7 +144,7 @@ const CreateChannelForm = () => {
     router.back();
   };
 
-  // ─── Updated Styles matching ProfileHeader ───
+  // ─── Styles ───
   const inputClass =
     "w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] bg-transparent border-black/10 dark:border-white/10 text-neutral-900 dark:text-white placeholder:text-neutral-500";
   const labelClass =
@@ -150,7 +153,6 @@ const CreateChannelForm = () => {
     "relative border border-dashed border-black/20 dark:border-white/20 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer overflow-hidden";
 
   return (
-    // Applied the exact container classes from your ProfileHeader
     <div className="mx-auto w-full max-w-2xl rounded-lg border border-black/10 dark:border-white/10 bg-black/3 dark:bg-white/5 relative overflow-hidden transition-all">
       {/* ─── Header ─── */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/10">
@@ -159,6 +161,7 @@ const CreateChannelForm = () => {
         </h2>
         <button
           onClick={onClose}
+          type="button"
           className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
         >
           <XIcon className="size-5" />
@@ -178,10 +181,12 @@ const CreateChannelForm = () => {
               onChange={(e) => onFileChange(e, "profile")}
             />
             {profileImagePreview ? (
-              <img
+              <Image
                 src={profileImagePreview}
-                alt="Profile"
-                className="w-full h-full object-cover"
+                alt="Profile Preview"
+                fill
+                sizes="96px"
+                className="object-cover"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-white transition-colors">
@@ -252,10 +257,12 @@ const CreateChannelForm = () => {
               onChange={(e) => onFileChange(e, "banner")}
             />
             {bannerPreview ? (
-              <img
+              <Image
                 src={bannerPreview}
-                alt="Banner"
-                className="w-full h-full object-cover"
+                alt="Banner Preview"
+                fill
+                sizes="(max-width: 768px) 100vw, 700px"
+                className="object-cover"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-white transition-colors">

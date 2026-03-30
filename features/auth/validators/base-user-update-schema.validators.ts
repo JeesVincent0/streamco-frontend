@@ -1,4 +1,4 @@
-import { email, z } from "zod";
+import { z } from "zod";
 
 export const baseUserUpdateSchema = z.object({
   displayName: z.string().min(3, "Display name must be at least 3 characters"),

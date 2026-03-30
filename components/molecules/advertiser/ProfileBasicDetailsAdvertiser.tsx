@@ -15,7 +15,7 @@ import {
 } from "@/lib/service/user-api/settingsApi";
 import UpdateEmailOtpVerification from "../user/UpdateEmailOtpVerification";
 import { useRouter } from "next/navigation";
-import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
+import { ADVERTISER_ROUTES } from "@/constants/routers";
 import { advertiserUpdateSchema } from "@/features/auth/validators/base-advertiser-update-schema.validator";
 
 interface ProfileBasicDetailsProps {
@@ -116,7 +116,8 @@ const ProfileBasicDetailsAdvertiser = ({ data }: ProfileBasicDetailsProps) => {
         toast.success("Profile updated successfully");
         setIsEditing(false);
       }
-    } catch (error) {
+    } catch (err) {
+      const error = err as { data: { message: string } };
       toast.error(error.data.message);
     }
   };
