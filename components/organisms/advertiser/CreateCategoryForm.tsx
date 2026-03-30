@@ -43,11 +43,11 @@ const CreateCategoryForm = () => {
   const onSubmit = async (data: CategoryFormValues) => {
     try {
       await createCategory(data).unwrap();
-
       toast.success("Category created successfully");
       router.push(ADMIN_ROUTES.CATEGORIES.ROOT);
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to create category");
+    } catch (err: unknown) {
+      const error = err as { data: { message: string } };
+      toast.error(error?.data?.message);
     }
   };
 

@@ -139,8 +139,9 @@ const CategoriesTable = () => {
       }).unwrap();
 
       toast.success("Status updated successfully");
-    } catch (error: any) {
-      toast.error(error?.data?.data?.message || "Something went wrong");
+    } catch (err: unknown) {
+      const error = err as { data: { data: { message: string } } };
+      toast.error(error?.data?.data?.message);
     }
 
     setOpenMenuId(null);

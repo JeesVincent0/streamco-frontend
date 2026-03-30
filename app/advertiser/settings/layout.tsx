@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarTrigger } from "@/components/atoms/sidebar";
-import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
+import { ADVERTISER_ROUTES } from "@/constants/routers";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
@@ -20,7 +20,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <>
       <header className="fixed top-17 z-10 mb-5 flex w-full items-center bg-background pr-4 md:pr-10">
         {/* Sidebar Trigger fixed to the left */}
-        <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
+        <div className="flex h-12 w-12 items-center justify-center shrink-0">
           <SidebarTrigger className="-ml-1" />
         </div>
 
@@ -42,7 +42,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   {button.name}
                   {/* Animated Active Indicator */}
                   {isActive && (
-                    <div className="absolute bottom-0 left-0 h-[2px] w-full bg-[#C35B00]" />
+                    <div className="absolute bottom-0 left-0 h-0.5 w-full bg-[#C35B00]" />
                   )}
                 </button>
               );

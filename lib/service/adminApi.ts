@@ -29,7 +29,9 @@ export const adminApi = createApi({
             adminApi.util.updateQueryData("getUsers", queryArgs, (draft) => {
               const usersList = draft?.data?.users;
               if (usersList) {
-                const user = usersList.find((u: any) => u.id === userId);
+                const user = usersList.find(
+                  (u: { id: string }) => u.id === userId,
+                );
                 if (user) {
                   user.status = status;
                 }

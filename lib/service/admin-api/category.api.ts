@@ -23,7 +23,21 @@ export const categoryApi = createApi({
     }),
 
     updateCategoryStatus: builder.mutation({
-      query: ({ id, status }: { id: string; status: string; queryArgs?: any }) => ({
+      query: ({
+        id,
+        status,
+      }: {
+        id: string;
+        status: string;
+        queryArgs?: {
+          page: number;
+          limit: number;
+          sortBy: "name" | "slug" | "liveCount" | "scheduledLiveCount";
+          order: "asc" | "desc";
+          status: string;
+          search: string;
+        };
+      }) => ({
         url: `${ADMIN_ROUTES.CATEGORIES.UPDATE_STATUS(id)}`,
         method: "POST",
         data: { status },
@@ -43,7 +57,9 @@ export const categoryApi = createApi({
               (draft) => {
                 const categoriesList = draft?.data?.categories;
                 if (categoriesList) {
-                  const category = categoriesList.find((c: any) => c.id === id);
+                  const category = categoriesList.find(
+                    (c: { id: string }) => c.id === id,
+                  );
                   if (category) {
                     category.status = status;
                   }
