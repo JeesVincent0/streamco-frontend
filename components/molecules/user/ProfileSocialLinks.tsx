@@ -10,7 +10,6 @@ import { useUpdateSocialLinksMutation } from "@/lib/service/user-api/settingsApi
 import Loading from "../common/LoadingPage";
 import { toast } from "sonner";
 
-// Define the incoming prop type based on your DB structure
 interface SocialLinkData {
   type: string;
   url: string;
@@ -24,7 +23,6 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [updateSocialLinks, { isLoading }] = useUpdateSocialLinksMutation();
 
-  // 1. Transform the DB array into the flat form object
   const defaultValues = useMemo(() => {
     const defaults: SocialLinksFormValues = {
       instagram: "",
@@ -35,7 +33,6 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
 
     if (Array.isArray(data)) {
       data.forEach((link) => {
-        // Convert 'INSTAGRAM' to 'instagram' to match our form schema keys
         const key = link.type.toLowerCase() as keyof SocialLinksFormValues;
         if (key in defaults) {
           defaults[key] = link.url;
@@ -46,7 +43,6 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
     return defaults;
   }, [data]);
 
-  // 2. Initialize React Hook Form
   const {
     register,
     handleSubmit,
@@ -54,17 +50,15 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
     formState: { errors },
   } = useForm<SocialLinksFormValues>({
     resolver: zodResolver(strictSocialLinksSchema),
-    defaultValues, // Set the initial mapped values
+    defaultValues,
   });
 
-  // 3. Keep form in sync if the database data updates (e.g., after a successful save)
   useEffect(() => {
     reset(defaultValues);
   }, [defaultValues, reset]);
 
   const onSubmit = async (formData: SocialLinksFormValues) => {
     try {
-      // .unwrap() is crucial for RTK Query so it actually throws to the catch block on failure
       await updateSocialLinks(formData).unwrap();
       toast.success("Social links updated successfully");
       setIsEditing(false);
@@ -74,7 +68,7 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
   };
 
   const handleCancel = () => {
-    reset(defaultValues); // Reverts typing back to the saved DB values
+    reset(defaultValues);
     setIsEditing(false);
   };
 
@@ -124,7 +118,7 @@ const ProfileSocialLinks = ({ data = [] }: ProfileSocialLinksProps) => {
           {isEditing && (
             <button
               type="button"
-              className="rounded dark:bg-white/5 dark:hover:bg-white/7 bg-black/5 hover:bg-black/7  px-6 py-2 text-xs font-semibold  hover:bg-[#b75500] hover:cursor-pointer"
+              className="rounded dark:bg-white/5 dark:hover:bg-white/7 bg-black/5  px-6 py-2 text-xs font-semibold  hover:bg-[#b75500] hover:cursor-pointer"
               onClick={handleCancel}
             >
               Cancel

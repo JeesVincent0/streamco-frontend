@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SearchIcon, XIcon } from "lucide-react"; // Imported XIcon
+import { SearchIcon, XIcon } from "lucide-react";
 
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -14,7 +14,6 @@ const SearchBar = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 1. Determine if the search bar should be visible
   const isUsersRoute = pathname === ADMIN_ROUTES.USERS.ROOT;
   const isCategoriesRoute = pathname === ADMIN_ROUTES.CATEGORIES.ROOT;
   const showSearchBar = isUsersRoute || isCategoriesRoute;
@@ -22,17 +21,11 @@ const SearchBar = () => {
   const search = searchParams.get("search") || "";
   const [searchKey, setSearchKey] = useState(search);
 
-  // Sync URL → input state
   useEffect(() => {
     setSearchKey(search);
   }, [search]);
 
-  // If not on a supported route, don't render anything
-  if (!showSearchBar) return null;
-
-  // 2. Dynamic Search Handler
   const handleSearch = (valueToSearch: string) => {
-    // Clone current params so we don't lose active filters (like status/sortBy)
     const params = new URLSearchParams(searchParams.toString());
 
     if (valueToSearch.trim() !== "") {
@@ -41,25 +34,31 @@ const SearchBar = () => {
       params.delete("search");
     }
 
-    // Always reset to page 1 when doing a new search
     params.set("page", "1");
-
-    // Push to the current pathname, making it work for both Users and Categories
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  // Trigger search on button click
+  useEffect(() => {
+    if (searchKey === search) return;
+
+    const timer = setTimeout(() => {
+      handleSearch(searchKey);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchKey]);
+
+  if (!showSearchBar) return null;
+
+  const onClear = () => {
+    setSearchKey("");
+    handleSearch("");
+  };
+
   const onSubmit = () => {
     handleSearch(searchKey);
   };
 
-  // Trigger clear on X icon click
-  const onClear = () => {
-    setSearchKey("");
-    handleSearch(""); // Instantly update URL to clear the search
-  };
-
-  // Optional: Trigger search on "Enter" key press
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onSubmit();
@@ -77,7 +76,6 @@ const SearchBar = () => {
           placeholder={`Search ${isUsersRoute ? "users" : "categories"}...`}
         />
 
-        {/* 3. Small Close Icon (Only shows if there is text) */}
         {searchKey && (
           <button
             onClick={onClear}

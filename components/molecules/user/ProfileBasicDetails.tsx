@@ -87,50 +87,73 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
   };
 
   const onSave = async (formData: z.infer<typeof baseUserUpdateSchema>) => {
+    const trimmedData = {
+      displayName: formData.displayName?.trim(),
+      bio: formData.bio?.trim(),
+      dob: formData.dob,
+      gender: formData.gender,
+      email: formData.email?.trim().toLowerCase(),
+    };
+
+    const hasDisplayNameChanged = trimmedData.displayName !== data.displayName;
+    const hasBioChanged = (trimmedData.bio || "") !== (data.bio || "");
+    const hasDobChanged =
+      trimmedData.dob !==
+      (data.dob ? new Date(data.dob).toISOString().split("T")[0] : "");
+    const hasGenderChanged = trimmedData.gender !== data.gender;
+    const hasEmailChanged = isEmailEditing && trimmedData.email !== data.email;
+
+    const isAnythingChanged =
+      hasDisplayNameChanged ||
+      hasBioChanged ||
+      hasDobChanged ||
+      hasGenderChanged ||
+      hasEmailChanged;
+
+    if (!isAnythingChanged) {
+      toast.info("No changes detected.");
+      setIsEditing(false);
+      setIsEmailEditing(false);
+      reset(trimmedData);
+      return;
+    }
+
     try {
-      if (isEmailEditing) {
-        const newEmail = formData.email;
+      if (isEmailEditing && hasEmailChanged) {
+        if (!trimmedData.email) return toast.error("Email cannot be empty.");
 
-        if (!newEmail) {
-          return toast.error("Email cannot be empty.");
-        }
-        if (newEmail === data.email) {
-          return toast.error(
-            "New email cannot be the same as the current email.",
-          );
-        }
-
-        // 1. Update basic profile first
         await updateBasicProfile({
-          displayName: formData.displayName,
-          bio: formData.bio,
-          dob: formData.dob,
-          gender: formData.gender,
+          displayName: trimmedData.displayName,
+          bio: trimmedData.bio,
+          dob: trimmedData.dob,
+          gender: trimmedData.gender,
         }).unwrap();
 
-        // 2. Update email
-        const res = await updateUserEmail({ email: newEmail }).unwrap();
+        const res = await updateUserEmail({
+          email: trimmedData.email,
+        }).unwrap();
         localStorage.setItem("id", res.data.id);
         localStorage.setItem("purpose", res.data.purpose);
         localStorage.setItem("otpResendAt", res.data.otpResendAt.toString());
 
-        toast.success("Profile updated. Please verify your new email.");
-
-        // Switch to OTP View
-        setPendingEmail(newEmail);
+        setPendingEmail(trimmedData.email);
         setShowOtp(true);
-        setIsEditing(false);
-        setIsEmailEditing(false);
       } else {
-        // Standard profile update (no email change)
-        const submitData = { ...formData, email: undefined };
-        await updateBasicProfile(submitData).unwrap();
+        await updateBasicProfile({
+          displayName: trimmedData.displayName,
+          bio: trimmedData.bio,
+          dob: trimmedData.dob,
+          gender: trimmedData.gender,
+        }).unwrap();
 
         toast.success("Profile updated successfully");
-        setIsEditing(false);
       }
-    } catch (error) {
-      toast.error(error.data.message);
+
+      setIsEditing(false);
+      setIsEmailEditing(false);
+    } catch (err: unknown) {
+      const error = err as { data: { message: string } };
+      toast.error(error?.data?.message || "An error occurred");
     }
   };
 
