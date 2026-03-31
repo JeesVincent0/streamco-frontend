@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchIcon, XIcon } from "lucide-react";
 
@@ -21,23 +21,29 @@ const SearchBar = () => {
   const search = searchParams.get("search") || "";
   const [searchKey, setSearchKey] = useState(search);
 
+  // Sync internal state with URL if URL changes (e.g. browser back button)
   useEffect(() => {
     setSearchKey(search);
   }, [search]);
 
-  const handleSearch = (valueToSearch: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+  // Memoize handleSearch to prevent unnecessary effect triggers
+  const handleSearch = useCallback(
+    (valueToSearch: string) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    if (valueToSearch.trim() !== "") {
-      params.set("search", valueToSearch.trim());
-    } else {
-      params.delete("search");
-    }
+      if (valueToSearch.trim() !== "") {
+        params.set("search", valueToSearch.trim());
+      } else {
+        params.delete("search");
+      }
 
-    params.set("page", "1");
-    router.push(`${pathname}?${params.toString()}`);
-  };
+      params.set("page", "1");
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParams],
+  );
 
+  // Debounce logic
   useEffect(() => {
     if (searchKey === search) return;
 
@@ -46,7 +52,7 @@ const SearchBar = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchKey]);
+  }, [searchKey, search, handleSearch]); // All dependencies included
 
   if (!showSearchBar) return null;
 

@@ -18,8 +18,6 @@ import { useCreateChannelMutation } from "@/lib/service/user-api/channelApi";
 import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
 
-// ─── Helper: Crop Image Generator ──────────────────────────────────────────────
-// ─── Helper: Crop Image Generator ──────────────────────────────────────────────
 const getCroppedImg = async (
   imageSrc: string,
   pixelCrop: Area,
@@ -60,7 +58,7 @@ const CreateChannelForm = () => {
     register,
     handleSubmit,
     setValue,
-    control, // Added control for useWatch
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreateChannelValues>({
     resolver: zodResolver(createChannelSchema),
@@ -73,11 +71,9 @@ const CreateChannelForm = () => {
     },
   });
 
-  // Fixed React Compiler Warning by using useWatch instead of watch()
   const profileImagePreview = useWatch({ control, name: "profileImage" });
   const bannerPreview = useWatch({ control, name: "backgroundBanner" });
 
-  // ─── Cropper State ───
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"profile" | "banner" | null>(null);
@@ -85,7 +81,6 @@ const CreateChannelForm = () => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  // ─── Handlers ───
   const onFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "profile" | "banner",

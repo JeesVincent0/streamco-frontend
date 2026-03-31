@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { SearchIcon } from "lucide-react";
 import { useGetChannelsQuery } from "@/lib/service/user-api/channelApi";
 import UserAvatar from "@/components/atoms/UserAvatar";
@@ -35,6 +35,7 @@ const ChannelList = () => {
 
   const channels = data?.data?.channels || [];
   const totalPages = data?.data?.totalPages || 1;
+  console.log("This is channes: ", channels);
 
   return (
     <div className="w-full max-w-4xl mx-auto py-6 font-sans">
