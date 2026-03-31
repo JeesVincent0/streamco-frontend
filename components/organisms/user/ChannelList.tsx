@@ -35,7 +35,6 @@ const ChannelList = () => {
 
   const channels = data?.data?.channels || [];
   const totalPages = data?.data?.totalPages || 1;
-  console.log("This is channes: ", channels);
 
   return (
     <div className="w-full max-w-4xl mx-auto py-6 font-sans">

@@ -69,17 +69,19 @@ const CategoriesTable = () => {
   const searchParams = useSearchParams();
 
   // 1. Build Query Params matching GetCategoriesDto
+  // 1. Build Query Params matching GetCategoriesDto
   const queryArgs = useMemo(
     () => ({
       page: Number(searchParams.get("page")) || 1,
       limit: Number(searchParams.get("limit")) || 10,
       sortBy:
         (searchParams.get("sortBy") as
+          | "createdAt" // 1. Added to TypeScript types
           | "name"
           | "slug"
           | "liveCount"
-          | "scheduledLiveCount") || "name",
-      order: (searchParams.get("order") as "asc" | "desc") || "asc",
+          | "scheduledLiveCount") || "createdAt", // 2. Changed default to createdAt
+      order: (searchParams.get("order") as "asc" | "desc") || "desc", // 3. Changed default to desc
       status: searchParams.get("status") || "",
       search: searchParams.get("search") || "",
       role: "",

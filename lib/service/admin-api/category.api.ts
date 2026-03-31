@@ -32,7 +32,7 @@ export const categoryApi = createApi({
         queryArgs?: {
           page: number;
           limit: number;
-          sortBy: "name" | "slug" | "liveCount" | "scheduledLiveCount";
+          sortBy: "name" | "slug" | "liveCount" | "scheduledLiveCount" | "createdAt";
           order: "asc" | "desc";
           status: string;
           search: string;
