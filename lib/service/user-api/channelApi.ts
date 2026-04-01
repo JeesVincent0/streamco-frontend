@@ -1,3 +1,4 @@
+import { ADMIN_ROUTES } from "@/constants/routers";
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
@@ -5,28 +6,95 @@ export const channelApi = createApi({
   reducerPath: "channelApi",
   baseQuery: axiosBaseQuery(),
   tagTypes: ["channels", "channel"],
+
   endpoints: (builder) => ({
-    // ─── Create Channel Mutation ───
+    // ─── Create Channel ───
     createChannel: builder.mutation({
       query: (data) => ({
         url: `/channels/create`,
         method: "POST",
         data,
       }),
-
       invalidatesTags: ["channels"],
     }),
 
-    // ─── GET CHANNELS QUERY ───
+    updateChannelStatus: builder.mutation({
+      query: (data) => ({
+        url: ADMIN_ROUTES.CHANNELS.UPDATE_STATUS(data.channelId),
+        method: "PATCH",
+        data: { status: data.status },
+      }),
+
+      invalidatesTags: ["channels"],
+
+      async onQueryStarted(
+        { channelId, status, queryArgs },
+        { dispatch, queryFulfilled },
+      ) {
+        const patchResult = dispatch(
+          channelApi.util.updateQueryData(
+            "getAllChannels",
+            queryArgs,
+            (draft) => {
+              const channel = draft.data.channels.find(
+                (c: { id: string }) => c.id === channelId,
+              );
+              if (channel) {
+                channel.status = status;
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
+
+    // ─── Get Channels ───
     getChannels: builder.query({
-      query: (params: { page: number; limit: number; search?: string }) => ({
+      query: (params) => ({
         url: `/channels`,
         method: "GET",
         params,
       }),
       providesTags: ["channels"],
     }),
+
+    // ─── Get Single Channel ───
+    getChannelById: builder.query({
+      query: (channelId) => ({
+        url: `/channels/${channelId}`,
+        method: "GET",
+      }),
+      providesTags: ["channel"],
+    }),
+
+    getChannelByIdAdmin: builder.query({
+      query: (channelId) => ({
+        url: ADMIN_ROUTES.CHANNELS.BYID(channelId),
+        method: "GET",
+      }),
+    }),
+
+    // ─── Get All Channels ───
+    getAllChannels: builder.query({
+      query: (params) => ({
+        url: ADMIN_ROUTES.CHANNELS.ROOT,
+        method: "GET",
+        params,
+      }),
+    }),
   }),
 });
 
-export const { useCreateChannelMutation, useGetChannelsQuery } = channelApi;
+export const {
+  useGetChannelsQuery,
+  useGetAllChannelsQuery,
+  useGetChannelByIdQuery,
+  useCreateChannelMutation,
+  useGetChannelByIdAdminQuery,
+  useUpdateChannelStatusMutation,
+} = channelApi;
