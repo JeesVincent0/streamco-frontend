@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 export const categorySchema = z.object({
-  name: z.string().min(2, "Category name must be at least 2 characters."),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Category name must be at least 2 characters."),
   slug: z
     .string()
+    .trim()
     .min(2, "Slug must be at least 2 characters.")
     .regex(
       /^[a-z0-9-]+$/,
@@ -12,6 +16,7 @@ export const categorySchema = z.object({
   // FIX: Allow empty strings when the textarea is left blank
   description: z
     .string()
+    .trim()
     .max(500, "Description cannot exceed 500 characters.")
     .optional()
     .or(z.literal("")),

@@ -44,4 +44,7 @@ export const ADMIN_ROUTES = {
   EARNINGS: {
     ROOT: `${ROOT}/earnings`,
   },
+  TEST: {
+    ROOT: `${ROOT}/test`,
+  },
 };

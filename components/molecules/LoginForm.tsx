@@ -70,7 +70,13 @@ const LoginForm = () => {
         }
         toast.success("Successfully logged in...");
       }
-    } catch (error) {
+    } catch (err: unknown) {
+      const error = err as {
+        data: {
+          data: { message: string; isVerified: boolean };
+          message: string;
+        };
+      };
       const data = error.data;
 
       if (data?.data?.isVerified === false) {
@@ -80,8 +86,7 @@ const LoginForm = () => {
 
       // setting server error
       setErrorMessage(
-        data?.message ||
-          "Something wend wrong, try again after sometimes",
+        data?.message || "Something wend wrong, try again after sometimes",
       );
     }
   };

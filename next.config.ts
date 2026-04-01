@@ -22,12 +22,17 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      // Add this pattern here:
       {
         protocol: "https",
         hostname: "ui-avatars.com",
         port: "",
         pathname: "/api/**",
+      },
+      {
+        protocol: "https",
+        hostname: "dvfk8tjoida0e.cloudfront.net",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

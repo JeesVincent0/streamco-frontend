@@ -1,8 +1,10 @@
+import { UseFormRegister, FieldValues } from "react-hook-form";
+
 type Props = {
   label: string;
   placeholder: string;
   type?: string;
-  register: any;
+  register: UseFormRegister<FieldValues>;
   name: string;
   error?: string;
 };

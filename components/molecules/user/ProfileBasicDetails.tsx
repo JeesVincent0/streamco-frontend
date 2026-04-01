@@ -17,6 +17,7 @@ import {
 import UpdateEmailOtpVerification from "./UpdateEmailOtpVerification";
 import { useRouter } from "next/navigation";
 import { USER_ROUTES } from "@/constants/routers";
+import { UserGender } from "@/constants/enums";
 
 interface ProfileBasicDetailsProps {
   data: {
@@ -62,11 +63,15 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
 
   // Sync external data changes to the form
   useEffect(() => {
+    const isValidGender = Object.values(UserGender).includes(
+      data.gender as UserGender,
+    );
+
     reset({
       displayName: data.displayName,
       bio: data.bio,
       dob: data.dob ? new Date(data.dob).toISOString().split("T")[0] : "",
-      gender: data.gender || "",
+      gender: isValidGender ? data.gender : "", // Fallback to "" if null or invalid
       email: data.email,
     });
   }, [data, reset]);
@@ -82,50 +87,73 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
   };
 
   const onSave = async (formData: z.infer<typeof baseUserUpdateSchema>) => {
+    const trimmedData = {
+      displayName: formData.displayName?.trim(),
+      bio: formData.bio?.trim(),
+      dob: formData.dob,
+      gender: formData.gender,
+      email: formData.email?.trim().toLowerCase(),
+    };
+
+    const hasDisplayNameChanged = trimmedData.displayName !== data.displayName;
+    const hasBioChanged = (trimmedData.bio || "") !== (data.bio || "");
+    const hasDobChanged =
+      trimmedData.dob !==
+      (data.dob ? new Date(data.dob).toISOString().split("T")[0] : "");
+    const hasGenderChanged = trimmedData.gender !== data.gender;
+    const hasEmailChanged = isEmailEditing && trimmedData.email !== data.email;
+
+    const isAnythingChanged =
+      hasDisplayNameChanged ||
+      hasBioChanged ||
+      hasDobChanged ||
+      hasGenderChanged ||
+      hasEmailChanged;
+
+    if (!isAnythingChanged) {
+      toast.info("No changes detected.");
+      setIsEditing(false);
+      setIsEmailEditing(false);
+      reset(trimmedData);
+      return;
+    }
+
     try {
-      if (isEmailEditing) {
-        const newEmail = formData.email;
+      if (isEmailEditing && hasEmailChanged) {
+        if (!trimmedData.email) return toast.error("Email cannot be empty.");
 
-        if (!newEmail) {
-          return toast.error("Email cannot be empty.");
-        }
-        if (newEmail === data.email) {
-          return toast.error(
-            "New email cannot be the same as the current email.",
-          );
-        }
-
-        // 1. Update basic profile first
         await updateBasicProfile({
-          displayName: formData.displayName,
-          bio: formData.bio,
-          dob: formData.dob,
-          gender: formData.gender,
+          displayName: trimmedData.displayName,
+          bio: trimmedData.bio,
+          dob: trimmedData.dob,
+          gender: trimmedData.gender,
         }).unwrap();
 
-        // 2. Update email
-        const res = await updateUserEmail({ email: newEmail }).unwrap();
+        const res = await updateUserEmail({
+          email: trimmedData.email,
+        }).unwrap();
         localStorage.setItem("id", res.data.id);
         localStorage.setItem("purpose", res.data.purpose);
         localStorage.setItem("otpResendAt", res.data.otpResendAt.toString());
 
-        toast.success("Profile updated. Please verify your new email.");
-
-        // Switch to OTP View
-        setPendingEmail(newEmail);
+        setPendingEmail(trimmedData.email);
         setShowOtp(true);
-        setIsEditing(false);
-        setIsEmailEditing(false);
       } else {
-        // Standard profile update (no email change)
-        const submitData = { ...formData, email: undefined };
-        await updateBasicProfile(submitData).unwrap();
+        await updateBasicProfile({
+          displayName: trimmedData.displayName,
+          bio: trimmedData.bio,
+          dob: trimmedData.dob,
+          gender: trimmedData.gender,
+        }).unwrap();
 
         toast.success("Profile updated successfully");
-        setIsEditing(false);
       }
-    } catch (error) {
-      toast.error(error.data.message);
+
+      setIsEditing(false);
+      setIsEmailEditing(false);
+    } catch (err: unknown) {
+      const error = err as { data: { message: string } };
+      toast.error(error?.data?.message || "An error occurred");
     }
   };
 
@@ -231,12 +259,49 @@ const ProfileBasicDetails = ({ data }: ProfileBasicDetailsProps) => {
               </p>
             )}
           </div>
-          <div>
-            <InputGroup
-              label="Gender"
-              readOnly={!isEditing}
-              {...register("gender")}
-            />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              Gender
+            </label>
+            <div className="relative">
+              <select
+                {...register("gender")}
+                disabled={!isEditing}
+                className={`w-full rounded-md border p-3 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-[#C35B00] appearance-none ${
+                  !isEditing
+                    ? "bg-neutral-100 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/5 text-neutral-500 cursor-not-allowed"
+                    : "bg-neutral-50 dark:bg-[#0F0F0F] border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white cursor-pointer"
+                }`}
+              >
+                {/* This option shows if gender is "" or null */}
+                <option value="" disabled>
+                  Select Gender
+                </option>
+                <option value={UserGender.MALE}>Male</option>
+                <option value={UserGender.FEMALE}>Female</option>
+                <option value={UserGender.NON_BINARY}>Non Binary</option>
+                <option value={UserGender.PREFER_NOT_TO_SAY}>
+                  Prefer not to say
+                </option>
+              </select>
+
+              {/* Custom Arrow Icon (Optional, adds visual clarity that it's a dropdown) */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
             {errors.gender && (
               <p className="text-xs text-red-500 mt-1">
                 {errors.gender.message as string}

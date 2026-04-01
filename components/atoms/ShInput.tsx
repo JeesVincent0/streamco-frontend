@@ -5,13 +5,14 @@ import { Field, FieldDescription, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./input-group";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { FieldValues, Path, UseFormRegister } from "react-hook-form";
 
-type Props = {
+type Props<T extends FieldValues> = {
   label?: string;
   placeholder: string;
   type?: string;
-  register?: any;
-  name: string;
+  register?: UseFormRegister<T>;
+  name: Path<T>;
   error?: string;
   fieldDescription?: string;
   htmlFor: string;
@@ -20,7 +21,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const ShInput = ({
+const ShInput = <T extends FieldValues>({
   id,
   htmlFor,
   label,
@@ -31,60 +32,58 @@ const ShInput = ({
   error,
   fieldDescription,
   style,
-}: Props) => {
+}: Props<T>) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  return (
-    <>
-      {" "}
-      <Field>
-        {label && (
-          <FieldLabel htmlFor={htmlFor}>
-            {label}: <span className="text-xs text-red-400">{error}</span>
-          </FieldLabel>
-        )}
 
-        {type === "password" ? (
-          <InputGroup>
-            <InputGroupInput
-              className={style}
-              id={id}
-              type={showPassword ? "text" : "password"}
-              placeholder={placeholder}
-              name={name}
-              {...(register ? register(name) : {})}
-            />
-            <InputGroupAddon align="inline-end">
-              <div
-                onClick={togglePasswordVisibility}
-                style={{ cursor: "pointer" }}
-              >
-                {showPassword ? (
-                  <EyeIcon height={17} />
-                ) : (
-                  <EyeOffIcon height={17} />
-                )}
-              </div>
-            </InputGroupAddon>
-          </InputGroup>
-        ) : (
-          <Input
+  return (
+    <Field>
+      {label && (
+        <FieldLabel htmlFor={htmlFor}>
+          {label}: <span className="text-xs text-red-400">{error}</span>
+        </FieldLabel>
+      )}
+
+      {type === "password" ? (
+        <InputGroup>
+          <InputGroupInput
             className={style}
             id={id}
-            type={type}
+            type={showPassword ? "text" : "password"}
             placeholder={placeholder}
-            name={name}
             {...(register ? register(name) : {})}
           />
-        )}
-        {fieldDescription && (
-          <FieldDescription>{fieldDescription}</FieldDescription>
-        )}
-      </Field>
-    </>
+          <InputGroupAddon align="inline-end">
+            <div
+              onClick={togglePasswordVisibility}
+              style={{ cursor: "pointer" }}
+              className="flex items-center justify-center h-full px-2"
+            >
+              {showPassword ? (
+                <EyeIcon height={17} />
+              ) : (
+                <EyeOffIcon height={17} />
+              )}
+            </div>
+          </InputGroupAddon>
+        </InputGroup>
+      ) : (
+        <Input
+          className={style}
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          {...(register ? register(name) : {})}
+        />
+      )}
+
+      {fieldDescription && (
+        <FieldDescription>{fieldDescription}</FieldDescription>
+      )}
+    </Field>
   );
 };
 

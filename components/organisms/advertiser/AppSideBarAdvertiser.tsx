@@ -7,7 +7,7 @@ import {
   SidebarMenuButton,
 } from "@/components/atoms/sidebar";
 import LeftSideProfile from "@/components/molecules/admin/LeftSideProfile";
-import { ADVERTISER_ROUTES, USER_ROUTES } from "@/constants/routers";
+import { ADVERTISER_ROUTES } from "@/constants/routers";
 import {
   HelpCircle,
   LayoutDashboard,

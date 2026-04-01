@@ -3,12 +3,14 @@ import { z } from "zod";
 export const strictSocialLinksSchema = z.object({
   instagram: z
     .string()
+    .trim()
     .url({ message: "Please enter a valid URL" })
     .includes("instagram.com", { message: "Must be a valid Instagram link" })
     .optional()
     .or(z.literal("")),
   x: z
     .string()
+    .trim()
     .url({ message: "Please enter a valid URL" })
     .refine(
       (val) =>
@@ -21,12 +23,14 @@ export const strictSocialLinksSchema = z.object({
     .or(z.literal("")),
   facebook: z
     .string()
+    .trim()
     .url({ message: "Please enter a valid URL" })
     .includes("facebook.com", { message: "Must be a valid Facebook link" })
     .optional()
     .or(z.literal("")),
   youtube: z
     .string()
+    .trim()
     .url({ message: "Please enter a valid URL" })
     .refine(
       (val) =>

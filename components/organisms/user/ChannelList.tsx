@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { SearchIcon } from "lucide-react";
 import { useGetChannelsQuery } from "@/lib/service/user-api/channelApi";
 import UserAvatar from "@/components/atoms/UserAvatar";
 
-// Helper function to format numbers (e.g., 1500 -> 1.5K, 1600000 -> 1.6M)
 const formatSubscribers = (count: number | undefined) => {
   if (!count) return "0";
   return Intl.NumberFormat("en-US", {
@@ -15,22 +14,19 @@ const formatSubscribers = (count: number | undefined) => {
 };
 
 const ChannelList = () => {
-  // ─── STATE & SEARCH DEBOUNCE ───
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const limit = 10;
 
-  // Wait 500ms after the user stops typing to fetch
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 on new search
+      setPage(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // ─── API CALL ───
   const { data, isLoading, isFetching } = useGetChannelsQuery({
     page,
     limit,
@@ -61,7 +57,7 @@ const ChannelList = () => {
       </div>
 
       {/* ─── CHANNEL LIST ─── */}
-      <div className="flex flex-col gap-3 min-h-[400px]">
+      <div className="flex flex-col gap-3 min-h-100">
         {isLoading || isFetching ? (
           // Loading Skeleton State
           <div className="p-8 text-center text-neutral-500 border border-black/10 dark:border-white/10 rounded-md bg-black/3 dark:bg-white/5 animate-pulse">
@@ -74,61 +70,70 @@ const ChannelList = () => {
           </div>
         ) : (
           // Actual Data Render
-          channels.map((channel: any) => (
-            <div
-              key={channel.id}
-              className="flex items-center justify-between p-4 rounded-md border border-black/10 dark:border-white/10 bg-black/3 dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors group cursor-pointer"
-            >
-              {/* Left Side: Avatar, Name & Handle */}
-              <div className="flex items-center gap-4">
-                <div className="relative size-10 rounded-full overflow-hidden border border-black/10 dark:border-white/10 shrink-0">
-                  <UserAvatar
-                    avatarUrl={channel.profileImageUrl}
-                    displayName={channel.channelName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-neutral-900 dark:text-white tracking-wide text-sm sm:text-base leading-tight">
-                    {channel.channelName}
-                  </span>
-                  <span className="text-xs text-neutral-500">
-                    @{channel.channelId}
-                  </span>
-                </div>
-              </div>
-
-              {/* Right Side: Subs & Status */}
-              <div className="flex items-center gap-6 sm:gap-12">
-                {/* Subscribers count coming from DB */}
-                <div className="text-sm">
-                  <span className="text-neutral-800 dark:text-neutral-200 font-medium uppercase">
-                    {formatSubscribers(channel.subscribersCount)}
-                  </span>{" "}
-                  <span className="text-neutral-500 hidden sm:inline-block">
-                    Subscribers
-                  </span>
-                </div>
-
-                {/* Status Indicator checking the new isLive boolean */}
-                <div className="w-16 flex justify-end">
-                  {channel.isLive ? (
-                    <div className="flex items-center gap-2 text-[#FF7701] font-medium text-sm">
-                      <span className="relative flex size-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF7701] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full size-2 bg-[#FF7701]"></span>
-                      </span>
-                      Live
-                    </div>
-                  ) : (
-                    <span className="text-neutral-500 font-medium text-sm">
-                      Offline
+          channels.map(
+            (channel: {
+              id: string;
+              profileImageUrl: string;
+              channelName: string;
+              channelId: string;
+              isLive: boolean;
+              subscribersCount: number;
+            }) => (
+              <div
+                key={channel.id}
+                className="flex items-center justify-between p-4 rounded-md border border-black/10 dark:border-white/10 bg-black/3 dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors group cursor-pointer"
+              >
+                {/* Left Side: Avatar, Name & Handle */}
+                <div className="flex items-center gap-4">
+                  <div className="relative size-10 rounded-full overflow-hidden border border-black/10 dark:border-white/10 shrink-0">
+                    <UserAvatar
+                      avatarUrl={channel.profileImageUrl}
+                      displayName={channel.channelName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-neutral-900 dark:text-white tracking-wide text-sm sm:text-base leading-tight">
+                      {channel.channelName}
                     </span>
-                  )}
+                    <span className="text-xs text-neutral-500">
+                      @{channel.channelId}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Side: Subs & Status */}
+                <div className="flex items-center gap-6 sm:gap-12">
+                  {/* Subscribers count coming from DB */}
+                  <div className="text-sm">
+                    <span className="text-neutral-800 dark:text-neutral-200 font-medium uppercase">
+                      {formatSubscribers(channel.subscribersCount)}
+                    </span>{" "}
+                    <span className="text-neutral-500 hidden sm:inline-block">
+                      Subscribers
+                    </span>
+                  </div>
+
+                  {/* Status Indicator checking the new isLive boolean */}
+                  <div className="w-16 flex justify-end">
+                    {channel.isLive ? (
+                      <div className="flex items-center gap-2 text-[#FF7701] font-medium text-sm">
+                        <span className="relative flex size-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF7701] opacity-75"></span>
+                          <span className="relative inline-flex rounded-full size-2 bg-[#FF7701]"></span>
+                        </span>
+                        Live
+                      </div>
+                    ) : (
+                      <span className="text-neutral-500 font-medium text-sm">
+                        Offline
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ),
+          )
         )}
       </div>
 

@@ -55,7 +55,12 @@ const EditAvatarTrigger = ({
   // Cropper States
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,16 +75,40 @@ const EditAvatarTrigger = ({
     }
   };
 
-  const onCropComplete = useCallback((_: any, pixels: any) => {
-    setCroppedAreaPixels(pixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (
+      _: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      },
+      pixels: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      },
+    ) => {
+      setCroppedAreaPixels(pixels);
+    },
+    [],
+  );
 
   const handleApplyCrop = async () => {
     try {
-      const result = await getCroppedImg(image!, croppedAreaPixels);
+      const result = await getCroppedImg(
+        image!,
+        croppedAreaPixels as {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+        },
+      );
       setCroppedImage(result);
       setImage(null);
-    } catch (e) {
+    } catch {
       toast.error("Could not crop image");
     }
   };
@@ -102,7 +131,7 @@ const EditAvatarTrigger = ({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[450px] bg-white dark:bg-[#1A1A1A] border-none">
+      <DialogContent className="sm:max-w-112.5 bg-white dark:bg-[#1A1A1A] border-none">
         <DialogHeader>
           <DialogTitle className="text-center">
             Edit Profile Picture

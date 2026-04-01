@@ -39,7 +39,7 @@ const OtpVerificationForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(otpVerificationSchema) });
+  } = useForm<{ otp: string }>({ resolver: zodResolver(otpVerificationSchema) });
 
   const getTimeleft = (): number => {
     const id = localStorage.getItem("id");
@@ -104,7 +104,10 @@ const OtpVerificationForm = () => {
           toast.success("OTP verified successfully");
         }
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as {
+        data: { data: { cachedUser: boolean }; message: string };
+      };
       const data = err?.data;
 
       if (data?.data?.cachedUser === false) {
@@ -128,11 +131,17 @@ const OtpVerificationForm = () => {
 
       const response = await resendOtp({ id }).unwrap();
 
-      localStorage.setItem("otpResendAt", response.data?.otpResendAt);
+      localStorage.setItem(
+        "otpResendAt",
+        response.data?.otpResendAt.toString(),
+      );
       setTimeLeft(getTimeleft());
 
       SetServerErrorMessage("OTP resent successfully");
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as {
+        data: { data: { cachedUser: boolean }; message: string };
+      };
       const data = err?.data;
 
       if (data?.data?.cachedUser === false) {

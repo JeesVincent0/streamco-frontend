@@ -11,8 +11,8 @@ export const settingApi = createApi({
   endpoints: (builder) => ({
     // Get user for profile
     getUserProfile: builder.query<UserProfileInterface, void>({
-      query: () => ({
-        url: "/user/profile",
+      query: (id) => ({
+        url: `/user/profile/${id}`,
         method: "GET",
       }),
       providesTags: ["ProfileUser"],

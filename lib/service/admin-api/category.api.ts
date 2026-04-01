@@ -5,36 +5,70 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 export const categoryApi = createApi({
   reducerPath: "categoryApi",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["categories", "category"],
   endpoints: (builder) => ({
-    // create new category
     createCategory: builder.mutation({
       query: (data) => ({
         url: `${ADMIN_ROUTES.CATEGORIES.CREATE}`,
         method: "POST",
         data,
       }),
-      invalidatesTags: ["categories"],
     }),
 
-    // get all categories with pagination
     getCategories: builder.query({
       query: (params) => ({
         url: `${ADMIN_ROUTES.CATEGORIES.ROOT}`,
         method: "GET",
         params,
       }),
-      providesTags: ["categories"],
     }),
 
-    // update category status
     updateCategoryStatus: builder.mutation({
-      query: ({ id, status }: { id: string; status: string }) => ({
+      query: ({
+        id,
+        status,
+      }: {
+        id: string;
+        status: string;
+        queryArgs?: {
+          page: number;
+          limit: number;
+          sortBy: "name" | "slug" | "liveCount" | "scheduledLiveCount" | "createdAt";
+          order: "asc" | "desc";
+          status: string;
+          search: string;
+        };
+      }) => ({
         url: `${ADMIN_ROUTES.CATEGORIES.UPDATE_STATUS(id)}`,
         method: "POST",
         data: { status },
       }),
-      invalidatesTags: ["categories"],
+
+      async onQueryStarted(
+        { id, status, queryArgs },
+        { dispatch, queryFulfilled },
+      ) {
+        try {
+          await queryFulfilled;
+
+          dispatch(
+            categoryApi.util.updateQueryData(
+              "getCategories",
+              queryArgs,
+              (draft) => {
+                const categoriesList = draft?.data?.categories;
+                if (categoriesList) {
+                  const category = categoriesList.find(
+                    (c: { id: string }) => c.id === id,
+                  );
+                  if (category) {
+                    category.status = status;
+                  }
+                }
+              },
+            ),
+          );
+        } catch {}
+      },
     }),
   }),
 });

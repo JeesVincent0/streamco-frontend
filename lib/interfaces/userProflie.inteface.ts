@@ -1,5 +1,4 @@
 import { UserContentType, UserGender } from "@/constants/enums";
-import { ROLE } from "@/constants/role.enum";
 
 export interface UserProfileInterface {
   id: string;

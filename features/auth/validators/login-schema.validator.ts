@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.email("Enter valid email"),
+  email: z.string().trim().email("Enter valid email"),
   password: z
     .string()
+    .trim()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Must contain at least one uppercase letter")
     .regex(/[a-z]/, "Must contain at least one lowercase letter")

@@ -1,7 +1,5 @@
-"use client";
 import { googleSignupApi } from "@/features/auth/api/google-signup";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 const GoogleSignupButton = ({
   type = "Signup",
@@ -10,14 +8,13 @@ const GoogleSignupButton = ({
   type?: string;
   role?: string;
 }) => {
-  const router = useRouter();
   const handleOnClick = async () => {
     try {
       await googleSignupApi({
         role: role?.toUpperCase(),
         intent: type.toLowerCase(),
       });
-    } catch (error) {}
+    } catch {}
   };
   return (
     <button
