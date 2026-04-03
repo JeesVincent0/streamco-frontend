@@ -18,7 +18,7 @@ import {
 import { MoreVerticalIcon, VideoIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import Loading from "../common/LoadingPage";
 import ReusableTable from "../table/ReusableTable";
@@ -66,16 +66,14 @@ function LiveStatusBadge({ isLive }: { isLive: boolean }) {
 type ChannelData = {
   id: string;
   channelName: string;
-  channelId: string; // The public-facing handle or ID
-  subscribers: number;
+  channelId: string;
+  subscribersCount: number;
   isLive: boolean;
-  scheduledLives: number;
   status: "ACTIVE" | "BLOCKED";
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const ChannelsTable = () => {
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -108,7 +106,6 @@ const ChannelsTable = () => {
       }).unwrap();
 
       toast.success(`Channel ${channelName} status updated to ${status}`);
-      setOpenMenuId(null);
     } catch {
       toast.error(`Failed to update status for ${channelName}`);
     }
@@ -116,6 +113,7 @@ const ChannelsTable = () => {
 
   const { data, isLoading, isFetching } = useGetAllChannelsQuery(queryArgs);
   const channels: ChannelData[] = data?.data?.channels ?? [];
+  console.log(channels);
   const { totalPages } = data?.data?.pagination ?? { totalPages: 0 };
 
   const updateParams = (updates: Record<string, string>) => {
@@ -183,11 +181,6 @@ const ChannelsTable = () => {
       })),
     },
     {
-      name: "Scheduled Lives",
-      field: "scheduledLives",
-      sortable: true,
-    },
-    {
       name: "Status",
       field: "status",
       filterOptions: STATUS_OPTIONS.map((opt) => ({
@@ -226,7 +219,7 @@ const ChannelsTable = () => {
       <TableCell>
         <span className="text-sm text-foreground">
           {new Intl.NumberFormat("en-US", { notation: "compact" }).format(
-            channel.subscribers,
+            channel.subscribersCount,
           )}
         </span>
       </TableCell>
@@ -234,13 +227,6 @@ const ChannelsTable = () => {
       {/* Live Status */}
       <TableCell>
         <LiveStatusBadge isLive={channel.isLive} />
-      </TableCell>
-
-      {/* Scheduled Lives */}
-      <TableCell>
-        <span className="text-sm text-foreground">
-          {channel.scheduledLives}
-        </span>
       </TableCell>
 
       {/* Status */}
@@ -256,10 +242,8 @@ const ChannelsTable = () => {
 
       {/* Actions */}
       <TableCell className="text-right">
-        <DropdownMenu
-          open={openMenuId === channel.id}
-          onOpenChange={(val) => setOpenMenuId(val ? channel.id : null)}
-        >
+        {/* ✅ FIX: Removed manual open/onOpenChange props here */}
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -271,11 +255,8 @@ const ChannelsTable = () => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="min-w-40">
-            {/* View Channel Link - FIXED NEXT.JS DOM NESTING */}
             <DropdownMenuItem asChild className="cursor-pointer text-sm">
-              <Link
-                href={`${ADMIN_ROUTES.CHANNELS?.ROOT || "/admin/channels"}/${channel.id}`}
-              >
+              <Link href={`${ADMIN_ROUTES.CHANNELS.BYID(channel.channelId)}`}>
                 View Channel
               </Link>
             </DropdownMenuItem>
