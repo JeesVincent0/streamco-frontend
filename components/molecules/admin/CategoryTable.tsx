@@ -26,10 +26,10 @@ import {
   useGetCategoriesQuery,
   useUpdateCategoryStatusMutation,
 } from "@/lib/service";
-import Loading from "@/components/molecules/common/LoadingPage";
 import ReusableTable from "@/components/molecules/table/ReusableTable";
 import { TableColumn } from "@/components/molecules/table/types";
 import { toast } from "sonner";
+import PopupModal from "@/components/molecules/common/PopupModal"; // <-- Adjust path if necessary
 
 // ─── Types matching your Backend ──────────────────────────────────────────────
 type CategoriesType = {
@@ -68,7 +68,19 @@ const CategoriesTable = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 1. Build Query Params matching GetCategoriesDto
+  // ─── Modal State ────────────────────────────────────────────────────────────
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    categoryId: string;
+    categoryName: string;
+    targetStatus: "ACTIVE" | "BLOCKED" | null;
+  }>({
+    isOpen: false,
+    categoryId: "",
+    categoryName: "",
+    targetStatus: null,
+  });
+
   // 1. Build Query Params matching GetCategoriesDto
   const queryArgs = useMemo(
     () => ({
@@ -76,12 +88,12 @@ const CategoriesTable = () => {
       limit: Number(searchParams.get("limit")) || 10,
       sortBy:
         (searchParams.get("sortBy") as
-          | "createdAt" // 1. Added to TypeScript types
+          | "createdAt"
           | "name"
           | "slug"
           | "liveCount"
-          | "scheduledLiveCount") || "createdAt", // 2. Changed default to createdAt
-      order: (searchParams.get("order") as "asc" | "desc") || "desc", // 3. Changed default to desc
+          | "scheduledLiveCount") || "createdAt",
+      order: (searchParams.get("order") as "asc" | "desc") || "desc",
       status: searchParams.get("status") || "",
       search: searchParams.get("search") || "",
       role: "",
@@ -135,29 +147,37 @@ const CategoriesTable = () => {
     updateParams({ [key]: value });
   };
 
-  // 3. Handle Status Toggle logic
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+  // ─── Execute Action (Fired by Modal Confirm) ─────────────────────────────
+  const executeAction = async () => {
+    if (!modalState.categoryId || !modalState.targetStatus) return;
 
     try {
       await updateCategoryStatus({
-        id,
-        status: newStatus,
+        id: modalState.categoryId,
+        status: modalState.targetStatus,
         queryArgs,
       }).unwrap();
 
-      toast.success("Status updated successfully");
+      toast.success(
+        `Category "${modalState.categoryName}" status updated to ${modalState.targetStatus}`,
+      );
+
+      // Close modal and menu
+      setModalState((prev) => ({ ...prev, isOpen: false }));
+      setOpenMenuId(null);
     } catch (err: unknown) {
       const error = err as { data: { data: { message: string } } };
-      toast.error(error?.data?.data?.message);
+      toast.error(
+        error?.data?.data?.message || "Failed to update category status",
+      );
     }
-
-    setOpenMenuId(null);
   };
 
   // Loading State
   if (isLoading || isFetching) return <TableLoadingSkelton />;
-  if (isStatusUpdating) return <Loading message="Updating..." />;
+
+  // Notice we removed the `isStatusUpdating` guard here because we want the table
+  // to stay visible while the modal shows the "Processing..." state.
 
   const columns: TableColumn[] = [
     {
@@ -241,7 +261,14 @@ const CategoriesTable = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-44">
             <DropdownMenuItem
-              onClick={() => handleToggleStatus(cat.id, cat.status)}
+              onClick={() =>
+                setModalState({
+                  isOpen: true,
+                  categoryId: cat.id,
+                  categoryName: cat.name,
+                  targetStatus: cat.status === "ACTIVE" ? "BLOCKED" : "ACTIVE",
+                })
+              }
               className={`cursor-pointer ${
                 cat.status === "ACTIVE"
                   ? "text-destructive focus:text-destructive focus:bg-destructive/10"
@@ -284,6 +311,27 @@ const CategoriesTable = () => {
           totalPages={totalPages}
         />
       )}
+
+      {/* Reusable Confirmation Modal */}
+      <PopupModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={executeAction}
+        isLoading={isStatusUpdating}
+        heading={
+          modalState.targetStatus === "BLOCKED"
+            ? "Block Category?"
+            : "Unblock Category?"
+        }
+        description={
+          modalState.targetStatus === "BLOCKED"
+            ? `Are you sure you want to block "${modalState.categoryName}"? Users will no longer be able to select it.`
+            : `Are you sure you want to unblock "${modalState.categoryName}"? It will become available to users again.`
+        }
+        confirmButtonText={
+          modalState.targetStatus === "BLOCKED" ? "Yes, Block" : "Yes, Unblock"
+        }
+      />
     </div>
   );
 };

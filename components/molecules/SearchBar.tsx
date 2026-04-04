@@ -9,24 +9,27 @@ import { Button } from "../ui/button";
 import { ButtonGroup } from "../atoms/button-group";
 import { ADMIN_ROUTES } from "@/constants/routers";
 
+const SEARCH_CONFIG: Record<string, { placeholder: string }> = {
+  [ADMIN_ROUTES.USERS.ROOT]: { placeholder: "Search users..." },
+  [ADMIN_ROUTES.CATEGORIES.ROOT]: { placeholder: "Search categories..." },
+  [ADMIN_ROUTES.CHANNELS.ROOT]: { placeholder: "Search channels..." },
+};
+
 const SearchBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const isUsersRoute = pathname === ADMIN_ROUTES.USERS.ROOT;
-  const isCategoriesRoute = pathname === ADMIN_ROUTES.CATEGORIES.ROOT;
-  const showSearchBar = isUsersRoute || isCategoriesRoute;
+  // 2. Look up the current route in our configuration map
+  const currentConfig = SEARCH_CONFIG[pathname];
 
   const search = searchParams.get("search") || "";
   const [searchKey, setSearchKey] = useState(search);
 
-  // Sync internal state with URL if URL changes (e.g. browser back button)
   useEffect(() => {
     setSearchKey(search);
   }, [search]);
 
-  // Memoize handleSearch to prevent unnecessary effect triggers
   const handleSearch = useCallback(
     (valueToSearch: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -43,7 +46,6 @@ const SearchBar = () => {
     [pathname, router, searchParams],
   );
 
-  // Debounce logic
   useEffect(() => {
     if (searchKey === search) return;
 
@@ -52,9 +54,9 @@ const SearchBar = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchKey, search, handleSearch]); // All dependencies included
+  }, [searchKey, search, handleSearch]);
 
-  if (!showSearchBar) return null;
+  if (!currentConfig) return null;
 
   const onClear = () => {
     setSearchKey("");
@@ -79,7 +81,7 @@ const SearchBar = () => {
           onChange={(e) => setSearchKey(e.target.value)}
           onKeyDown={handleKeyDown}
           className="rounded-sm dark:border dark:border-white/50 border-black/20 pr-8 w-full"
-          placeholder={`Search ${isUsersRoute ? "users" : "categories"}...`}
+          placeholder={currentConfig.placeholder}
         />
 
         {searchKey && (

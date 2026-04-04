@@ -20,9 +20,9 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import Loading from "../common/LoadingPage";
 import ReusableTable from "../table/ReusableTable";
 import { TableColumn } from "../table/types";
+import PopupModal from "../common/PopupModal"; // <-- Import the modal
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 const ROLE_OPTIONS = ["", "USER", "ADVERTISER"];
@@ -90,6 +90,19 @@ const UsersTable = () => {
   const [updateUserStatus, { isLoading: isUpdating }] =
     useUpdateUserStatusMutation();
 
+  // ─── Modal State ────────────────────────────────────────────────────────────
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userEmail: string;
+    targetStatus: "ACTIVE" | "SUSPENDED" | "DELETED" | null;
+  }>({
+    isOpen: false,
+    userId: "",
+    userEmail: "",
+    targetStatus: null,
+  });
+
   const queryArgs = useMemo(
     () => ({
       page: Number(searchParams.get("page")) || 1,
@@ -104,22 +117,25 @@ const UsersTable = () => {
     [searchParams],
   );
 
-  const handleAction = async (
-    userId: string,
-    status: "ACTIVE" | "SUSPENDED" | "DELETED",
-    email: string,
-  ) => {
+  // ─── Execute Action (Fired by Modal Confirm) ─────────────────────────────
+  const executeAction = async () => {
+    if (!modalState.userId || !modalState.targetStatus) return;
+
     try {
       await updateUserStatus({
-        userId,
-        status,
+        userId: modalState.userId,
+        status: modalState.targetStatus,
         queryArgs,
       }).unwrap();
 
-      toast.success(`User ${email} status updated to ${status}`);
+      toast.success(
+        `User ${modalState.userEmail} status updated to ${modalState.targetStatus}`,
+      );
+      // Close modal and dropdown on success
+      setModalState((prev) => ({ ...prev, isOpen: false }));
       setOpenMenuId(null);
     } catch {
-      toast.error(`Failed to update user ${email} status`);
+      toast.error(`Failed to update user ${modalState.userEmail} status`);
     }
   };
 
@@ -154,9 +170,36 @@ const UsersTable = () => {
   const handleFilter = (key: string, value: string) =>
     updateParams({ [key]: value });
 
+  // ── Dynamic Modal Content Helper ──────────────────────────────────────────
+  const getModalContent = () => {
+    switch (modalState.targetStatus) {
+      case "DELETED":
+        return {
+          heading: "Delete User?",
+          description: `Are you sure you want to delete ${modalState.userEmail}? This will restrict their access.`,
+          confirmText: "Yes, Delete",
+        };
+      case "SUSPENDED":
+        return {
+          heading: "Suspend User?",
+          description: `Are you sure you want to suspend ${modalState.userEmail}? They will temporarily lose access to their account.`,
+          confirmText: "Yes, Suspend",
+        };
+      case "ACTIVE":
+        return {
+          heading: "Activate User?",
+          description: `Are you sure you want to activate ${modalState.userEmail}? Their account access will be restored.`,
+          confirmText: "Yes, Activate",
+        };
+      default:
+        return { heading: "", description: "", confirmText: "" };
+    }
+  };
+
+  const modalContent = getModalContent();
+
   // ── Guards ────────────────────────────────────────────────────────────────
   if (isLoading || isFetching) return <TableLoadingSkelton />;
-  if (isUpdating) return <Loading message="Updating user status..." />;
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-2">
@@ -272,29 +315,41 @@ const UsersTable = () => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="min-w-40">
-            <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
-              <DropdownMenuItem className="cursor-pointer text-sm">
+            <DropdownMenuItem asChild className="cursor-pointer text-sm">
+              <Link href={`${ADMIN_ROUTES.USERS.ROOT}/${user.id}`}>
                 View Details
-              </DropdownMenuItem>
-            </Link>
+              </Link>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             {user.status === "DELETED" && (
               <>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
-                  onClick={() => handleAction(user.id, "SUSPENDED", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "SUSPENDED",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Suspend"}
+                  Suspend
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
-                  onClick={() => handleAction(user.id, "ACTIVE", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "ACTIVE",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Activate"}
+                  Activate
                 </DropdownMenuItem>
               </>
             )}
@@ -302,18 +357,30 @@ const UsersTable = () => {
             {user.status === "ACTIVE" && (
               <>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
-                  onClick={() => handleAction(user.id, "SUSPENDED", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "SUSPENDED",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Suspend"}
+                  Suspend
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-                  onClick={() => handleAction(user.id, "DELETED", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "DELETED",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Delete"}
+                  Delete
                 </DropdownMenuItem>
               </>
             )}
@@ -321,18 +388,30 @@ const UsersTable = () => {
             {user.status === "SUSPENDED" && (
               <>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
-                  onClick={() => handleAction(user.id, "ACTIVE", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "ACTIVE",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Activate"}
+                  Activate
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled={isUpdating}
                   className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-                  onClick={() => handleAction(user.id, "DELETED", user.email)}
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      userId: user.id,
+                      userEmail: user.email,
+                      targetStatus: "DELETED",
+                    })
+                  }
                 >
-                  {isUpdating ? "Updating..." : "Delete"}
+                  Delete
                 </DropdownMenuItem>
               </>
             )}
@@ -343,15 +422,28 @@ const UsersTable = () => {
   );
 
   return (
-    <ReusableTable
-      columns={columns}
-      data={users}
-      renderRow={renderRow}
-      queryArgs={queryArgs}
-      onSort={handleSort}
-      onFilter={handleFilter}
-      totalPages={totalPages}
-    />
+    <>
+      <ReusableTable
+        columns={columns}
+        data={users}
+        renderRow={renderRow}
+        queryArgs={queryArgs}
+        onSort={handleSort}
+        onFilter={handleFilter}
+        totalPages={totalPages}
+      />
+
+      {/* Render the unified modal */}
+      <PopupModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={executeAction}
+        isLoading={isUpdating}
+        heading={modalContent.heading}
+        description={modalContent.description}
+        confirmButtonText={modalContent.confirmText}
+      />
+    </>
   );
 };
 

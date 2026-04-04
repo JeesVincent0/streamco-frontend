@@ -1,9 +1,7 @@
-const Channels = () => {
-  return (
-    <div className="items-center mt-10 flex flex-col h-full">
-      Comming soon...
-    </div>
-  );
+import Channels from "@/components/organisms/admin/Channels";
+
+const Channel = () => {
+  return <Channels />;
 };
 
-export default Channels;
+export default Channel;

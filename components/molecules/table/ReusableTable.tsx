@@ -13,15 +13,13 @@ interface ReusableTableProps<T> {
   renderRow: (item: T, index: number) => React.ReactNode;
   isLoading?: boolean;
   emptyMessage?: string;
+
   queryArgs: {
     page: number;
     limit: number;
     sortBy: string;
     order: string;
-    role: string;
-    status: string;
-    search: string;
-    isVerified: string | null;
+    [key: string]: string | number | boolean | null | undefined;
   };
   onSort: (field: string) => void;
   onFilter: (field: string, value: string) => void;

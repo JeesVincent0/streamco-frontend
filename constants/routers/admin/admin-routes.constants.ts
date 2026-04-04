@@ -35,6 +35,8 @@ export const ADMIN_ROUTES = {
   },
   CHANNELS: {
     ROOT: `${ROOT}/channels`,
+    BYID: (id: string) => `${ROOT}/channels/${id}`,
+    UPDATE_STATUS: (id: string) => `${ROOT}/channels/${id}/status`,
   },
   CATEGORIES: {
     ROOT: `${ROOT}/categories`,

@@ -1,15 +1,13 @@
 "use client";
 
-import { ArrowLeftIcon, XCircleIcon } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { XCircleIcon } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
   useGetUserByIdQuery,
   useUpdateUserStatusMutation,
 } from "@/lib/service/adminApi";
-import { ADMIN_ROUTES } from "@/constants/routers/admin/admin-routes.constants";
 import Loading from "@/components/molecules/common/LoadingPage";
 
 // ── Molecules ──────────────────────────────────────────────────────────────────
@@ -23,11 +21,13 @@ import AdvertiserSection from "@/components/organisms/admin/AdvertiserSection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 import { AdvertiserUser, ContentUser } from "@/lib/types";
+import DetailedPageTemplate from "@/components/templates/admin/DetailedPageTemplate";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 const UserDetails = () => {
   const userId = useParams().id as string;
+  const router = useRouter();
 
   const { data: user, isLoading, isError } = useGetUserByIdQuery(userId);
   const [updateUserStatus, { isLoading: isUpdating }] =
@@ -53,12 +53,12 @@ const UserDetails = () => {
         <p className="text-muted-foreground text-sm">
           Failed to load user details.
         </p>
-        <Link
-          href={ADMIN_ROUTES.USERS.ROOT}
+        <button
+          onClick={() => router.back()}
           className="text-sm text-primary hover:underline"
         >
-          Go back to users
-        </Link>
+          Go back
+        </button>
       </div>
     );
   }
@@ -66,16 +66,7 @@ const UserDetails = () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5 py-6 px-2 sm:px-4 lg:px-6">
-      {/* Back navigation */}
-      <Link
-        href={ADMIN_ROUTES.USERS.ROOT}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeftIcon className="size-4" />
-        Back to Users
-      </Link>
-
+    <DetailedPageTemplate>
       {/* Two-column layout: sidebar | main */}
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* ── LEFT SIDEBAR ── */}
@@ -101,7 +92,7 @@ const UserDetails = () => {
           )}
         </div>
       </div>
-    </div>
+    </DetailedPageTemplate>
   );
 };
 
