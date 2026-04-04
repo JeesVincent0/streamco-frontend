@@ -18,11 +18,11 @@ import {
 import { MoreVerticalIcon, VideoIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import Loading from "../common/LoadingPage";
 import ReusableTable from "../table/ReusableTable";
 import { TableColumn } from "../table/types";
+import PopupModal from "../common/PopupModal";
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ["", "ACTIVE", "BLOCKED"];
@@ -80,6 +80,19 @@ const ChannelsTable = () => {
   const [updateChannelStatus, { isLoading: isUpdating }] =
     useUpdateChannelStatusMutation();
 
+  // ─── Modal State ────────────────────────────────────────────────────────
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    channelId: string;
+    channelName: string;
+    targetStatus: "ACTIVE" | "BLOCKED" | null;
+  }>({
+    isOpen: false,
+    channelId: "",
+    channelName: "",
+    targetStatus: null,
+  });
+
   const queryArgs = useMemo(
     () => ({
       page: Number(searchParams.get("page")) || 1,
@@ -93,28 +106,30 @@ const ChannelsTable = () => {
     [searchParams],
   );
 
-  const handleAction = async (
-    channelId: string,
-    status: "ACTIVE" | "BLOCKED",
-    channelName: string,
-  ) => {
+  const { data, isLoading, isFetching } = useGetAllChannelsQuery(queryArgs);
+  const channels: ChannelData[] = data?.data?.channels ?? [];
+  const { totalPages } = data?.data?.pagination ?? { totalPages: 0 };
+
+  // ─── Execute Action (Fired by Modal Confirm) ─────────────────────────────
+  const executeAction = async () => {
+    if (!modalState.channelId || !modalState.targetStatus) return;
+
     try {
       await updateChannelStatus({
-        channelId,
-        status,
+        channelId: modalState.channelId,
+        status: modalState.targetStatus,
         queryArgs,
       }).unwrap();
 
-      toast.success(`Channel ${channelName} status updated to ${status}`);
+      toast.success(
+        `Channel ${modalState.channelName} status updated to ${modalState.targetStatus}`,
+      );
+      // Close the modal on success
+      setModalState((prev) => ({ ...prev, isOpen: false }));
     } catch {
-      toast.error(`Failed to update status for ${channelName}`);
+      toast.error(`Failed to update status for ${modalState.channelName}`);
     }
   };
-
-  const { data, isLoading, isFetching } = useGetAllChannelsQuery(queryArgs);
-  const channels: ChannelData[] = data?.data?.channels ?? [];
-  console.log(channels);
-  const { totalPages } = data?.data?.pagination ?? { totalPages: 0 };
 
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -145,7 +160,6 @@ const ChannelsTable = () => {
 
   // ── Guards ────────────────────────────────────────────────────────────────
   if (isLoading || isFetching) return <TableLoadingSkelton />;
-  if (isUpdating) return <Loading message="Updating channel status..." />;
   if (channels.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-2">
@@ -242,7 +256,6 @@ const ChannelsTable = () => {
 
       {/* Actions */}
       <TableCell className="text-right">
-        {/* ✅ FIX: Removed manual open/onOpenChange props here */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -266,27 +279,31 @@ const ChannelsTable = () => {
             {/* Block / Unblock Actions */}
             {channel.status === "ACTIVE" ? (
               <DropdownMenuItem
-                disabled={isUpdating}
                 className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
                 onClick={() =>
-                  handleAction(
-                    channel.channelId,
-                    "BLOCKED",
-                    channel.channelName,
-                  )
+                  setModalState({
+                    isOpen: true,
+                    channelId: channel.channelId,
+                    channelName: channel.channelName,
+                    targetStatus: "BLOCKED",
+                  })
                 }
               >
-                {isUpdating ? "Updating..." : "Block Channel"}
+                Block Channel
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
-                disabled={isUpdating}
                 className="cursor-pointer text-sm text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10"
                 onClick={() =>
-                  handleAction(channel.id, "ACTIVE", channel.channelName)
+                  setModalState({
+                    isOpen: true,
+                    channelId: channel.channelId,
+                    channelName: channel.channelName,
+                    targetStatus: "ACTIVE",
+                  })
                 }
               >
-                {isUpdating ? "Updating..." : "Unblock Channel"}
+                Unblock Channel
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -296,15 +313,37 @@ const ChannelsTable = () => {
   );
 
   return (
-    <ReusableTable
-      columns={columns}
-      data={channels}
-      renderRow={renderRow}
-      queryArgs={queryArgs}
-      onSort={handleSort}
-      onFilter={handleFilter}
-      totalPages={totalPages}
-    />
+    <>
+      <ReusableTable
+        columns={columns}
+        data={channels}
+        renderRow={renderRow}
+        queryArgs={queryArgs}
+        onSort={handleSort}
+        onFilter={handleFilter}
+        totalPages={totalPages}
+      />
+
+      <PopupModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={executeAction}
+        isLoading={isUpdating}
+        heading={
+          modalState.targetStatus === "BLOCKED"
+            ? "Block Channel?"
+            : "Unblock Channel?"
+        }
+        description={
+          modalState.targetStatus === "BLOCKED"
+            ? `Are you sure you want to block ${modalState.channelName}? They will no longer be able to stream.`
+            : `Are you sure you want to unblock ${modalState.channelName}? Their access will be restored.`
+        }
+        confirmButtonText={
+          modalState.targetStatus === "BLOCKED" ? "Yes, Block" : "Yes, Unblock"
+        }
+      />
+    </>
   );
 };
 
