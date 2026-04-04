@@ -32,11 +32,6 @@ const LeftSideMenu = () => {
       icon: <Users className={sideButtonRootClass} />,
     },
     {
-      name: "Advertisers",
-      path: ADMIN_ROUTES.ADVERTISERS.ROOT,
-      icon: <BanknoteArrowUp className={sideButtonRootClass} />,
-    },
-    {
       name: "Channels",
       path: ADMIN_ROUTES.CHANNELS.ROOT,
       icon: <Tv className={sideButtonRootClass} />,
