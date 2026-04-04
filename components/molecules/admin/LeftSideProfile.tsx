@@ -24,7 +24,7 @@ const LeftSideProfile = () => {
       >
         {/* Avatar Container - Scales with parent padding */}
         <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-30 transition duration-500" />
+          <div className="absolute -inset-0.5 bg-linear-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-30 transition duration-500" />
           <Image
             src={
               user?.avatarUrl ||
