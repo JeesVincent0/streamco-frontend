@@ -22,5 +22,6 @@ export const USER_ROUTES = {
   },
   CHANNEL: {
     CREATE: `/create-channel`,
+    ROOT: (id: string) => `/channel/${id}`,
   },
 };

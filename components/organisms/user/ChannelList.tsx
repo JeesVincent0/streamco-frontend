@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { SearchIcon } from "lucide-react";
 import { useGetChannelsQuery } from "@/lib/service/user-api/channelApi";
 import UserAvatar from "@/components/atoms/UserAvatar";
+import { useRouter } from "next/navigation";
+import { USER_ROUTES } from "@/constants/routers";
 
 const formatSubscribers = (count: number | undefined) => {
   if (!count) return "0";
@@ -14,6 +16,7 @@ const formatSubscribers = (count: number | undefined) => {
 };
 
 const ChannelList = () => {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -34,6 +37,7 @@ const ChannelList = () => {
   });
 
   const channels = data?.data?.channels || [];
+  console.log(channels);
   const totalPages = data?.data?.totalPages || 1;
 
   return (
@@ -80,6 +84,9 @@ const ChannelList = () => {
               subscribersCount: number;
             }) => (
               <div
+                onClick={() =>
+                  router.push(USER_ROUTES.CHANNEL.ROOT(channel.channelId))
+                }
                 key={channel.id}
                 className="flex items-center justify-between p-4 rounded-md border border-black/10 dark:border-white/10 bg-black/3 dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors group cursor-pointer"
               >
