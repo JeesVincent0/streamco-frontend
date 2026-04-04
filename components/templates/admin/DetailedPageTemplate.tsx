@@ -11,7 +11,7 @@ const DetailedPageTemplate = ({ children }: { children: ReactNode }) => {
       {/* Back navigation */}
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors hover:cursor-pointer"
       >
         <ArrowLeftIcon className="size-4" />
         Go back

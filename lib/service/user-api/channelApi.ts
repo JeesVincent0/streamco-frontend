@@ -37,7 +37,7 @@ export const channelApi = createApi({
             queryArgs,
             (draft) => {
               const channel = draft.data.channels.find(
-                (c: { id: string }) => c.id === channelId,
+                (c: { channelId: string }) => c.channelId === channelId,
               );
               if (channel) {
                 channel.status = status;

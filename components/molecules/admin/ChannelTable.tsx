@@ -269,7 +269,11 @@ const ChannelsTable = () => {
                 disabled={isUpdating}
                 className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
                 onClick={() =>
-                  handleAction(channel.id, "BLOCKED", channel.channelName)
+                  handleAction(
+                    channel.channelId,
+                    "BLOCKED",
+                    channel.channelName,
+                  )
                 }
               >
                 {isUpdating ? "Updating..." : "Block Channel"}
