@@ -25,13 +25,13 @@ const LeftSideProfile = () => {
   const isCollapsed = state === "collapsed";
 
   const displayAvatar = isChannelRoute
-    ? channelData?.avatarUrl
+    ? channelData?.data.profileImageUrl
     : user?.avatarUrl;
 
   const displayName = isChannelRoute
     ? isLoading
       ? "Loading..."
-      : channelData?.name || "Unknown Channel"
+      : channelData?.data.channelName || "Unknown Channel"
     : user?.displayName || "Guest User";
 
   const displaySubtext = isChannelRoute ? channelData?.handle : user?.email;
