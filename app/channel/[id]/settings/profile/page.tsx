@@ -1,5 +1,7 @@
+import ChannelProfile from "@/components/organisms/channel/ChannelProfile";
+
 const page = () => {
-  return <div>Coming soon...</div>;
+  return <ChannelProfile />;
 };
 
 export default page;

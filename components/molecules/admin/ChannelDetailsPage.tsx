@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import { useState } from "react";
-import { useGetChannelByIdAdminQuery } from "@/lib/service/user-api/channelApi";
 import Loading from "../common/LoadingPage";
 
 // ─── Shared UI Atoms ──────────────────────────────────────────────────────────
@@ -48,10 +46,31 @@ const STATUS_STYLES: Record<string, string> = {
   BLOCKED: "bg-red-500/10 text-red-500 border border-red-500/20",
 };
 
-export default function ChannelDetailsPage() {
-  const params = useParams();
-  const channelId = params.id as string;
+export interface IChannelDetails {
+  data: {
+    channelName: string;
+    channelId: string;
+    isLive: boolean;
+    createdAt: Date;
+    backgroundBannerUrl: string;
+    profileImageUrl: string;
+    subscribersCount: number;
+    status: string;
+    userId: string;
+    bio: string;
+    walletBalance?: number;
+    totalEarnings?: number;
+  };
+  isLoading: boolean;
+  error: unknown;
+}
 
+export default function ChannelDetailsPage({
+  data,
+  isLoading,
+  error,
+}: IChannelDetails) {
+  console.log("this is channel view data: ", data);
   const [bannerError, setBannerError] = useState(false);
   const [profileError, setProfileError] = useState(false);
 
@@ -60,10 +79,10 @@ export default function ChannelDetailsPage() {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   // ─── Fetch Data ─────────────────────────────────────────────────────────────
-  const { data, isLoading, error } = useGetChannelByIdAdminQuery(channelId);
+  // const { data, isLoading, error } = useGetChannelByIdAdminQuery(channelId);
 
   if (isLoading) return <Loading message="Loading channel details..." />;
-  if (error || !data?.data) {
+  if (error || !data) {
     return (
       <div className="p-8 text-center text-muted-foreground">
         Channel not found.
@@ -71,7 +90,7 @@ export default function ChannelDetailsPage() {
     );
   }
 
-  const channel = data.data;
+  const channel = data;
 
   // Formatters
   const joinedDate = new Date(channel.createdAt).toLocaleDateString("en-US", {
@@ -264,7 +283,7 @@ export default function ChannelDetailsPage() {
               </span>
               <span className="text-sm font-bold text-foreground">
                 {formatCurrency(
-                  channel.totalEarnings ? channel.totalEarnings : "0",
+                  channel.totalEarnings ? channel.totalEarnings : 0,
                 )}
               </span>
             </div>
@@ -274,7 +293,9 @@ export default function ChannelDetailsPage() {
                 Current Wallet Balance
               </span>
               <span className="text-lg font-bold text-emerald-500">
-                {formatCurrency(channel.walletBalance ? channel.walletBalance: "0")}
+                {formatCurrency(
+                  channel.walletBalance ? channel.walletBalance : 0,
+                )}
               </span>
             </div>
             <div className="pt-2">

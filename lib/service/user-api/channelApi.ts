@@ -93,6 +93,7 @@ export const channelApi = createApi({
         method: "GET",
         params,
       }),
+      providesTags: ["channels"],
     }),
   }),
 });
