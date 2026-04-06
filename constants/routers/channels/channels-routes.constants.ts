@@ -1,5 +1,6 @@
 export const CHANNEL_ROUTES = {
   ROOT: (id: string) => `/channel/${id}`,
+  BASE: "base",
   DASHBOARD: {
     ROOT: (id: string) => `/channel/${id}/dashboard`,
   },

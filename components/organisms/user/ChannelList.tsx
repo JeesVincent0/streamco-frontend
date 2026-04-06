@@ -37,7 +37,7 @@ const ChannelList = () => {
   });
 
   const channels = data?.data?.channels || [];
-  console.log(channels);
+
   const totalPages = data?.data?.totalPages || 1;
 
   return (
