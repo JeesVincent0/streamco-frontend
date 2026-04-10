@@ -9,8 +9,8 @@ const ProfileHeader = ({
   data: {
     displayName: string;
     avatarUrl: string;
-    isVerified: boolean;
-    isProfileCompleted: boolean;
+    isVerified?: boolean;
+    isProfileCompleted?: boolean;
   };
 }) => {
   return (
@@ -19,7 +19,11 @@ const ProfileHeader = ({
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
           Profile
         </h2>
-        <ProfileCompletionBadge isProfileCompleted={data.isProfileCompleted} />
+        {data.isProfileCompleted !== undefined && (
+          <ProfileCompletionBadge
+            isProfileCompleted={data.isProfileCompleted}
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -36,7 +40,9 @@ const ProfileHeader = ({
             <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
               {data.displayName}
             </span>
-            <VerifiedBadge value={data.isVerified} />
+            { data.isVerified !== undefined && (
+              <VerifiedBadge value={data.isVerified} />
+            )}
           </div>
 
           {/* Now passing current image and name for the preview */}

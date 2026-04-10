@@ -1,16 +1,61 @@
 "use client";
 
-import { SidebarHeader, useSidebar } from "@/components/atoms/sidebar";
-import { RootState } from "@/lib/store";
 import Image from "next/image";
+import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
+import { ErrorCode } from "@/constants/enums";
+import { usePathname, useParams } from "next/navigation";
+import { SidebarHeader, useSidebar } from "@/components/atoms/sidebar";
+import GlobalErrorDialog from "@/components/organisms/GlobalActionDialog";
+import { useGetChannelDetailsQuery } from "@/lib/service/user-api/channelApi";
 
 const LeftSideProfile = () => {
   const { state } = useSidebar();
   const { user } = useSelector((state: RootState) => state.auth);
 
-  // Constants for better readability
+  const pathname = usePathname();
+  const params = useParams();
+
+  const isChannelRoute = pathname?.split("/")[1] === "channel";
+  const channelId = params?.id as string;
+
+  const {
+    data: channelData,
+    isLoading,
+    error,
+  } = useGetChannelDetailsQuery(channelId, {
+    skip: !isChannelRoute || !channelId,
+  });
+
   const isCollapsed = state === "collapsed";
+
+  const displayAvatar = isChannelRoute
+    ? channelData?.data.profileImageUrl
+    : user?.avatarUrl;
+
+  const displayName = isChannelRoute
+    ? isLoading
+      ? "Loading..."
+      : channelData?.data.channelName || "Unknown Channel"
+    : user?.displayName || "Guest User";
+
+  const displaySubtext = isChannelRoute ? channelData?.handle : user?.email;
+
+  if (error) {
+    const err = error as {
+      data?: {
+        error?: {
+          code?: ErrorCode;
+        };
+      };
+    };
+
+    const code = err?.data?.error?.code;
+
+    if (code) {
+      return <GlobalErrorDialog errorCode={code} />;
+    }
+  }
 
   return (
     <SidebarHeader className="p-0">
@@ -27,9 +72,8 @@ const LeftSideProfile = () => {
           <div className="absolute -inset-0.5 bg-linear-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-30 transition duration-500" />
           <Image
             src={
-              user?.avatarUrl ||
-              "https://ui-avatars.com/api/?name=" +
-                (user?.displayName || "User")
+              displayAvatar ||
+              "https://ui-avatars.com/api/?name=" + (displayName || "User")
             }
             className="relative rounded-full border-2 border-background object-cover shadow-sm"
             alt="Profile Picture"
@@ -47,10 +91,10 @@ const LeftSideProfile = () => {
           `}
         >
           <h2 className="text-sm font-bold text-foreground truncate w-full px-2">
-            {user?.displayName || "Guest User"}
+            {displayName}
           </h2>
           <p className="text-xs text-muted-foreground truncate w-full px-2">
-            {user?.email}
+            {displaySubtext}
           </p>
         </div>
       </div>

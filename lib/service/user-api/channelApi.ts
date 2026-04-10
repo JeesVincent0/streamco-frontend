@@ -1,4 +1,5 @@
 import { ADMIN_ROUTES } from "@/constants/routers";
+import { CHANNEL_ROUTES } from "@/constants/routers/channels";
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
@@ -8,6 +9,12 @@ export const channelApi = createApi({
   tagTypes: ["channels", "channel"],
 
   endpoints: (builder) => ({
+    getChannelDetails: builder.query({
+      query: (id: string) => ({
+        url: CHANNEL_ROUTES.ROOT(id),
+        method: "GET",
+      }),
+    }),
     // ─── Create Channel ───
     createChannel: builder.mutation({
       query: (data) => ({
@@ -86,6 +93,7 @@ export const channelApi = createApi({
         method: "GET",
         params,
       }),
+      providesTags: ["channels"],
     }),
   }),
 });
@@ -95,6 +103,7 @@ export const {
   useGetAllChannelsQuery,
   useGetChannelByIdQuery,
   useCreateChannelMutation,
+  useGetChannelDetailsQuery,
   useGetChannelByIdAdminQuery,
   useUpdateChannelStatusMutation,
 } = channelApi;

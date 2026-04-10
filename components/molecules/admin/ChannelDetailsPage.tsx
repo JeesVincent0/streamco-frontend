@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import { useState } from "react";
-import { useGetChannelByIdAdminQuery } from "@/lib/service/user-api/channelApi";
 import Loading from "../common/LoadingPage";
 
 // ─── Shared UI Atoms ──────────────────────────────────────────────────────────
@@ -48,10 +46,32 @@ const STATUS_STYLES: Record<string, string> = {
   BLOCKED: "bg-red-500/10 text-red-500 border border-red-500/20",
 };
 
-export default function ChannelDetailsPage() {
-  const params = useParams();
-  const channelId = params.id as string;
+export interface IChannelDetails {
+  data: {
+    channelName: string;
+    channelId: string;
+    isLive: boolean;
+    createdAt: Date;
+    backgroundBannerUrl: string;
+    profileImageUrl: string;
+    subscribersCount: number;
+    status: string;
+    userId: string;
+    bio: string;
+    walletBalance?: number;
+    totalEarnings?: number;
+  };
+  isLoading: boolean;
+  error: unknown;
+  isAdmin?: boolean;
+}
 
+export default function ChannelDetailsPage({
+  data,
+  isLoading,
+  error,
+  isAdmin = true,
+}: IChannelDetails) {
   const [bannerError, setBannerError] = useState(false);
   const [profileError, setProfileError] = useState(false);
 
@@ -60,10 +80,10 @@ export default function ChannelDetailsPage() {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   // ─── Fetch Data ─────────────────────────────────────────────────────────────
-  const { data, isLoading, error } = useGetChannelByIdAdminQuery(channelId);
+  // const { data, isLoading, error } = useGetChannelByIdAdminQuery(channelId);
 
   if (isLoading) return <Loading message="Loading channel details..." />;
-  if (error || !data?.data) {
+  if (error || !data) {
     return (
       <div className="p-8 text-center text-muted-foreground">
         Channel not found.
@@ -71,7 +91,7 @@ export default function ChannelDetailsPage() {
     );
   }
 
-  const channel = data.data;
+  const channel = data;
 
   // Formatters
   const joinedDate = new Date(channel.createdAt).toLocaleDateString("en-US", {
@@ -90,7 +110,7 @@ export default function ChannelDetailsPage() {
     new Intl.NumberFormat("en-US", { notation: "compact" }).format(num);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-12">
       {/* ─── Header Actions ─── */}
       <div className="flex items-center justify-between">
         <Button
@@ -182,13 +202,19 @@ export default function ChannelDetailsPage() {
             </div>
 
             <div className="flex items-center">
-              <Badge
-                label={channel.status}
-                styleClass={
-                  STATUS_STYLES[channel.status] ??
-                  "bg-muted text-muted-foreground border border-border"
-                }
-              />
+              {isAdmin ? (
+                <Badge
+                  label={channel.status}
+                  styleClass={
+                    STATUS_STYLES[channel.status] ??
+                    "bg-muted text-muted-foreground border border-border"
+                  }
+                />
+              ) : (
+                <>
+                  <Button>Edit</Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -207,84 +233,94 @@ export default function ChannelDetailsPage() {
       {/* ─── Metadata Grid ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Channel Information */}
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-4">
-          <div className="flex justify-between">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <ShieldCheckIcon className="size-5 text-primary" />
-              Channel Details
-            </h3>
-            {/* View Owner Button */}
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                href={`${ADMIN_ROUTES.USERS?.ROOT || "/admin/users"}/${
-                  channel.userId
-                }`}
-              >
-                <UserIcon className="size-4 mr-2" />
-                View Owner Details
-              </Link>
-            </Button>
-          </div>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-border/50">
-              <span className="text-sm text-muted-foreground">
-                Public Handle
-              </span>
-              <span className="text-sm font-medium">@{channel.channelId}</span>
+        {isAdmin && (
+          <>
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-4">
+              <div className="flex justify-between">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <ShieldCheckIcon className="size-5 text-primary" />
+                  Channel Details
+                </h3>
+                {/* View Owner Button */}
+                <Button variant="outline" size="sm" asChild>
+                  <Link
+                    href={`${ADMIN_ROUTES.USERS?.ROOT || "/admin/users"}/${
+                      channel.userId
+                    }`}
+                  >
+                    <UserIcon className="size-4 mr-2" />
+                    View Owner Details
+                  </Link>
+                </Button>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground">
+                    Public Handle
+                  </span>
+                  <span className="text-sm font-medium">
+                    @{channel.channelId}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground">
+                    Total Subscribers
+                  </span>
+                  <span className="text-sm font-medium">
+                    {channel.subscribersCount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground">
+                    Created On
+                  </span>
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <CalendarIcon className="size-4 text-muted-foreground" />
+                    {joinedDate}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/50">
-              <span className="text-sm text-muted-foreground">
-                Total Subscribers
-              </span>
-              <span className="text-sm font-medium">
-                {channel.subscribersCount.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/50">
-              <span className="text-sm text-muted-foreground">Created On</span>
-              <span className="text-sm font-medium flex items-center gap-2">
-                <CalendarIcon className="size-4 text-muted-foreground" />
-                {joinedDate}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Financial Overview */}
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <WalletIcon className="size-5 text-emerald-500" />
-            Financial Overview
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-border/50">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <CircleDollarSignIcon className="size-4" />
-                Total Ad Earnings
-              </span>
-              <span className="text-sm font-bold text-foreground">
-                {formatCurrency(
-                  channel.totalEarnings ? channel.totalEarnings : "0",
-                )}
-              </span>
+            {/* Financial Overview */}
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <WalletIcon className="size-5 text-emerald-500" />
+                Financial Overview
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                    <CircleDollarSignIcon className="size-4" />
+                    Total Ad Earnings
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatCurrency(
+                      channel.totalEarnings ? channel.totalEarnings : 0,
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                    <WalletIcon className="size-4" />
+                    Current Wallet Balance
+                  </span>
+                  <span className="text-lg font-bold text-emerald-500">
+                    {formatCurrency(
+                      channel.walletBalance ? channel.walletBalance : 0,
+                    )}
+                  </span>
+                </div>
+                <div className="pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    * Earnings represent total historical revenue generated from
+                    platform advertisers.
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/50">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <WalletIcon className="size-4" />
-                Current Wallet Balance
-              </span>
-              <span className="text-lg font-bold text-emerald-500">
-                {formatCurrency(channel.walletBalance ? channel.walletBalance: "0")}
-              </span>
-            </div>
-            <div className="pt-2">
-              <p className="text-xs text-muted-foreground">
-                * Earnings represent total historical revenue generated from
-                platform advertisers.
-              </p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
