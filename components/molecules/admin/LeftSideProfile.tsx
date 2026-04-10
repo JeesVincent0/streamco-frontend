@@ -4,8 +4,10 @@ import { SidebarHeader, useSidebar } from "@/components/atoms/sidebar";
 import { RootState } from "@/lib/store";
 import Image from "next/image";
 import { useSelector } from "react-redux";
-import { usePathname, useParams } from "next/navigation";
+import { usePathname, useParams, redirect } from "next/navigation";
 import { useGetChannelDetailsQuery } from "@/lib/service/user-api/channelApi";
+import { ErrorCode } from "@/constants/enums";
+import GlobalErrorDialog from "@/components/organisms/GlobalActionDialog";
 
 const LeftSideProfile = () => {
   const { state } = useSidebar();
@@ -17,10 +19,13 @@ const LeftSideProfile = () => {
   const isChannelRoute = pathname?.split("/")[1] === "channel";
   const channelId = params?.id as string;
 
-  const { data: channelData, isLoading } = useGetChannelDetailsQuery(
-    channelId,
-    { skip: !isChannelRoute || !channelId },
-  );
+  const {
+    data: channelData,
+    isLoading,
+    error,
+  } = useGetChannelDetailsQuery(channelId, {
+    skip: !isChannelRoute || !channelId,
+  });
 
   const isCollapsed = state === "collapsed";
 
@@ -35,6 +40,11 @@ const LeftSideProfile = () => {
     : user?.displayName || "Guest User";
 
   const displaySubtext = isChannelRoute ? channelData?.handle : user?.email;
+
+  if (error) {
+    const code = error?.data?.error?.code;
+    return <GlobalErrorDialog errorCode={code} />;
+  }
 
   return (
     <SidebarHeader className="p-0">

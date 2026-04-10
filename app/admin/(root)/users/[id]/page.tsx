@@ -29,7 +29,10 @@ const UserDetails = () => {
   const userId = useParams().id as string;
   const router = useRouter();
 
-  const { data: user, isLoading, isError } = useGetUserByIdQuery(userId);
+  const { data: response, isLoading, isError } = useGetUserByIdQuery(userId);
+  console.log("this is admin user view data: ", response);
+  const user = response?.data;
+
   const [updateUserStatus, { isLoading: isUpdating }] =
     useUpdateUserStatusMutation();
 
@@ -46,7 +49,7 @@ const UserDetails = () => {
   // ── Guards ──────────────────────────────────────────────────────────────────
   if (isLoading) return <Loading message="Fetching user details..." />;
 
-  if (isError || !user) {
+  if (isError || !response?.data) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <XCircleIcon className="size-10 text-destructive" />

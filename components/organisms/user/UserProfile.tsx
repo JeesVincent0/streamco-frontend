@@ -7,7 +7,8 @@ import ProfileSocialLinks from "@/components/molecules/user/ProfileSocialLinks";
 import { useGetUserProfileQuery } from "@/lib/service/user-api/settingsApi";
 
 const UserProfile = () => {
-  const { data, isLoading } = useGetUserProfileQuery();
+  const { data: response, isLoading } = useGetUserProfileQuery();
+  const data = response?.data;
 
   if (isLoading) return <Loading />;
   return (
