@@ -1,13 +1,13 @@
 "use client";
 
-import { SidebarHeader, useSidebar } from "@/components/atoms/sidebar";
-import { RootState } from "@/lib/store";
 import Image from "next/image";
+import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
-import { usePathname, useParams, redirect } from "next/navigation";
-import { useGetChannelDetailsQuery } from "@/lib/service/user-api/channelApi";
 import { ErrorCode } from "@/constants/enums";
+import { usePathname, useParams } from "next/navigation";
+import { SidebarHeader, useSidebar } from "@/components/atoms/sidebar";
 import GlobalErrorDialog from "@/components/organisms/GlobalActionDialog";
+import { useGetChannelDetailsQuery } from "@/lib/service/user-api/channelApi";
 
 const LeftSideProfile = () => {
   const { state } = useSidebar();
@@ -42,8 +42,19 @@ const LeftSideProfile = () => {
   const displaySubtext = isChannelRoute ? channelData?.handle : user?.email;
 
   if (error) {
-    const code = error?.data?.error?.code;
-    return <GlobalErrorDialog errorCode={code} />;
+    const err = error as {
+      data?: {
+        error?: {
+          code?: ErrorCode;
+        };
+      };
+    };
+
+    const code = err?.data?.error?.code;
+
+    if (code) {
+      return <GlobalErrorDialog errorCode={code} />;
+    }
   }
 
   return (

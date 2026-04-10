@@ -44,7 +44,16 @@ const GlobalErrorDialog = ({ errorCode }: Props) => {
     }
   };
 
-  const config: Record<ErrorCode, any> = {
+  type ErrorDialogConfig = {
+    title: string;
+    message: string;
+    actionText: string;
+    cancelText: string;
+    onAction: () => void;
+    onCancel: () => void;
+  };
+
+  const config: Record<ErrorCode, ErrorDialogConfig> = {
     [ErrorCode.USER_NOT_EXISTS]: {
       title: "User Not Found",
       message: "This account does not exist.",
@@ -60,7 +69,7 @@ const GlobalErrorDialog = ({ errorCode }: Props) => {
       actionText: "Logout",
       cancelText: "Close",
       onAction: () => {
-        handleLogout?.();
+        handleLogout();
         router.replace(USER_ROUTES.HOME.ROOT);
       },
       onCancel: () => router.replace(USER_ROUTES.HOME.ROOT),
