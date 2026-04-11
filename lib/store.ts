@@ -5,14 +5,16 @@ import authReducer from "./slice/authSlice";
 import { adminApi } from "./service/adminApi";
 import { settingApi } from "./service/user-api/settingsApi";
 import { channelApi } from "./service/user-api/channelApi";
+import { liveApi } from "./service/user-api/liveApi";
 
 const rootReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
+  [liveApi.reducerPath]: liveApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
-  [categoryApi.reducerPath]: categoryApi.reducer,
   [channelApi.reducerPath]: channelApi.reducer,
+  [categoryApi.reducerPath]: categoryApi.reducer,
   auth: authReducer,
 });
 
@@ -22,10 +24,11 @@ export const store = configureStore({
     getDefaultMiddleware().concat(
       authApi.middleware,
       userApi.middleware,
+      liveApi.middleware,
       adminApi.middleware,
       settingApi.middleware,
-      categoryApi.middleware,
       channelApi.middleware,
+      categoryApi.middleware,
     ),
 });
 

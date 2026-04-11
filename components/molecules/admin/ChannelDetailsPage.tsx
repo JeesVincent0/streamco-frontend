@@ -17,7 +17,6 @@ import Image from "next/image";
 import { useState } from "react";
 import Loading from "../common/LoadingPage";
 
-// ─── Shared UI Atoms ──────────────────────────────────────────────────────────
 function Badge({ label, styleClass }: { label: string; styleClass: string }) {
   return (
     <span
@@ -75,12 +74,8 @@ export default function ChannelDetailsPage({
   const [bannerError, setBannerError] = useState(false);
   const [profileError, setProfileError] = useState(false);
 
-  // 2. Added loading states for both images
   const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
-
-  // ─── Fetch Data ─────────────────────────────────────────────────────────────
-  // const { data, isLoading, error } = useGetChannelByIdAdminQuery(channelId);
 
   if (isLoading) return <Loading message="Loading channel details..." />;
   if (error || !data) {

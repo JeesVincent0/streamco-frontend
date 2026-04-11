@@ -9,6 +9,8 @@ export const CHANNEL_ROUTES = {
   },
   SCHEDULED_LIVE: {
     ROOT: (id: string) => `/channel/${id}/scheduled-live`,
+    VIEW: (id: string, live_id: string) =>
+      `/channel/${id}/scheduled-live/${live_id}`,
   },
   EARNINGS: {
     ROOT: (id: string) => `/channel/${id}/earnings`,
