@@ -1,4 +1,4 @@
-import ScheduledLivesTable from "@/components/organisms/channel/ScheduledLivesTable";
+import ScheduledLivesTable from "@/components/organisms/channel/ScheduledLives";
 
 const page = () => {
   return <ScheduledLivesTable />;

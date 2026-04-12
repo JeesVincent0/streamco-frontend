@@ -5,6 +5,7 @@ import {
   XCircleIcon,
   CalendarX2Icon,
   MoreVerticalIcon,
+  PlusIcon,
 } from "lucide-react";
 
 import {
@@ -35,6 +36,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
+import { ADMIN_ROUTES } from "@/constants/routers";
 
 type ScheduledLiveType = {
   id: string;
@@ -252,6 +254,14 @@ const ScheduledLivesTable = () => {
 
   return (
     <div className="mx-auto w-full max-w-1150 space-y-6 px-4 py-8">
+      {/* Top Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+        <Button asChild size="sm" className="h-9 gap-2 px-4">
+          <Link href={`${ADMIN_ROUTES.CATEGORIES.CREATE}`}>
+            <PlusIcon className="size-4" /> Create Category
+          </Link>
+        </Button>
+      </div>
       {scheduledLives.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-2 border border-border rounded-xl">
           <XCircleIcon className="size-8 text-muted-foreground/40" />
