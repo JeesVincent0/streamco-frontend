@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react"; // Use '/react' to auto-generate hooks
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import { LIVE_ROUTES } from "@/constants/routers/channels";
+import { ScheduleLiveFormValues } from "@/features/channel/validators";
 
 export const liveApi = createApi({
   reducerPath: "liveApi",
@@ -20,10 +21,10 @@ export const liveApi = createApi({
 
     // SCHEDULE LIVE
     scheduleLive: builder.mutation({
-      query: (data) => ({
-        url: `${LIVE_ROUTES.LIVE.ROOT}/${LIVE_ROUTES.LIVE.SCHEDULE}`,
+      query: (data: { data: ScheduleLiveFormValues; channelId: string }) => ({
+        url: `${LIVE_ROUTES.LIVE.ROOT}/${data.channelId}/${LIVE_ROUTES.LIVE.SCHEDULE}`,
         method: "POST",
-        data,
+        data: data.data,
       }),
     }),
 

@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
+import {
   EyeIcon,
   XCircleIcon,
   CalendarX2Icon,
@@ -24,19 +31,12 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CHANNEL_ROUTES, LIVE_ROUTES } from "@/constants/routers/channels";
+import { CHANNEL_ROUTES } from "@/constants/routers/channels";
 import { TableRow, TableCell } from "@/components/atoms/table";
 import { TableColumn } from "@/components/molecules/table/types";
 import PopupModal from "@/components/molecules/common/PopupModal";
 import ReusableTable from "@/components/molecules/table/ReusableTable";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
 import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
-import { ADMIN_ROUTES } from "@/constants/routers";
 
 type ScheduledLiveType = {
   id: string;
@@ -257,8 +257,8 @@ const ScheduledLivesTable = () => {
       {/* Top Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <Button asChild size="sm" className="h-9 gap-2 px-4">
-          <Link href={`${ADMIN_ROUTES.CATEGORIES.CREATE}`}>
-            <PlusIcon className="size-4" /> Create Category
+          <Link href={`${CHANNEL_ROUTES.SCHEDULED_LIVE.CREATE(channelId)}`}>
+            <PlusIcon className="size-4" /> Schedule Live
           </Link>
         </Button>
       </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import Image from "next/image"; // <-- Added Next.js Image import
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Cropper from "react-easy-crop";
+import Cropper, { Area } from "react-easy-crop";
 import {
   VISIBILITY,
   ScheduleLiveFormValues,
@@ -14,16 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/atoms/textarea";
 import { CategorySelect } from "@/components/molecules/CategorySelectorComponent";
 import { getCroppedImg } from "@/features/utility";
-
-// Utility to convert Base64 Data URL to a File Object
-const dataUrlToFile = async (
-  dataUrl: string,
-  fileName: string,
-): Promise<File> => {
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  return new File([blob], fileName, { type: "image/jpeg" });
-};
+import { useScheduleLiveMutation } from "@/lib/service/user-api/liveApi";
+import { toast } from "sonner";
+import { useParams, useRouter } from "next/navigation";
+import { CHANNEL_ROUTES } from "@/constants/routers/channels";
+import { ErrorCode } from "@/constants/enums";
+import GlobalErrorDialog from "@/components/organisms/GlobalActionDialog";
 
 const ScheduleLiveForm = () => {
   const [selectedImageStr, setSelectedImageStr] = useState<string | null>(null);
@@ -50,10 +47,11 @@ const ScheduleLiveForm = () => {
     defaultValues: {
       visibility: VISIBILITY.PUBLIC,
       duration: "01:00",
+      thumbnail: "",
     },
   });
 
-  const thumbnailFile = useWatch({
+  const thumbnailBase64 = useWatch({
     control,
     name: "thumbnail",
   });
@@ -71,7 +69,7 @@ const ScheduleLiveForm = () => {
   };
 
   const onCropComplete = useCallback(
-    (croppedArea: any, croppedAreaPixels: any) => {
+    (croppedArea: Area, croppedAreaPixels: Area) => {
       setPixelCrop(croppedAreaPixels);
     },
     [],
@@ -82,30 +80,54 @@ const ScheduleLiveForm = () => {
 
     try {
       const croppedBase64 = await getCroppedImg(selectedImageStr, pixelCrop);
-      const croppedFile = await dataUrlToFile(croppedBase64, "thumbnail.jpg");
 
-      setValue("thumbnail", croppedFile, { shouldValidate: true });
+      setValue("thumbnail", croppedBase64, { shouldValidate: true });
+
       setIsCropModalOpen(false);
+      setSelectedImageStr(null);
     } catch (e) {
       console.error("Error cropping image:", e);
+      toast.error("Could not crop image");
     }
   };
+
+  const [scheduleLive] = useScheduleLiveMutation();
+  const router = useRouter();
+  const channelId = useParams().id as string;
+  const [globalErrorCode, setGlobalErrorCode] = useState<ErrorCode | null>(
+    null,
+  );
 
   const onSubmit = async (data: ScheduleLiveFormValues) => {
     console.log("Form is valid! Submitting:", data);
 
-    // Example of how to send to backend:
-    // const formData = new FormData();
-    // formData.append('title', data.title);
-    // formData.append('thumbnail', data.thumbnail);
-    // await fetch('/api/schedule', { method: 'POST', body: formData });
+    try {
+      await scheduleLive({ data, channelId }).unwrap();
+      toast.success("Live Scheduled successfully");
+      router.push(CHANNEL_ROUTES.SCHEDULED_LIVE.ROOT(channelId));
+    } catch (err) {
+      const error = err as {
+        data: {
+          message?: string;
+          error?: { code: ErrorCode; message: string };
+        };
+      };
+      if (error.data.error?.code) {
+        toast.error(error.data.error.message);
+        setGlobalErrorCode(error.data.error?.code);
+        return;
+      }
+      toast.error(error?.data?.message || "An error occurred");
+    }
   };
+
+  if (globalErrorCode) return <GlobalErrorDialog errorCode={globalErrorCode} />;
 
   return (
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6 max-w-xl p-6 border rounded-lg"
+        className="space-y-6 max-w-xl mx-auto p-6 border rounded-lg"
       >
         <h2 className="text-2xl font-bold">Schedule a Live</h2>
 
@@ -193,11 +215,20 @@ const ScheduleLiveForm = () => {
           <div className="flex flex-col gap-2">
             <Input type="file" accept="image/*" onChange={onFileSelect} />
 
-            {thumbnailFile && (
-              <p className="text-xs text-green-600 font-medium mt-1">
-                ✓ Cropped thumbnail ready (
-                {Math.round(thumbnailFile.size / 1024)} KB)
-              </p>
+            {thumbnailBase64 && typeof thumbnailBase64 === "string" && (
+              <div className="mt-2">
+                <p className="text-xs text-green-600 font-medium mb-2">
+                  ✓ Cropped thumbnail ready
+                </p>
+                {/* UPDATED: Using Next.js Image */}
+                <Image
+                  src={thumbnailBase64}
+                  alt="Thumbnail Preview"
+                  width={320} // Base width (16:9 ratio)
+                  height={180} // Base height (16:9 ratio)
+                  className="h-24 w-auto object-cover rounded border shadow-sm"
+                />
+              </div>
             )}
           </div>
           {errors.thumbnail && (
@@ -216,7 +247,7 @@ const ScheduleLiveForm = () => {
           <div className="bg-background p-6 rounded-lg w-full max-w-2xl space-y-4 shadow-xl">
             <h3 className="text-lg font-bold">Crop Thumbnail</h3>
 
-            <div className="relative h-[400px] w-full bg-muted border rounded overflow-hidden">
+            <div className="relative h-100 w-full bg-muted border rounded overflow-hidden">
               <Cropper
                 image={selectedImageStr}
                 crop={crop}
@@ -244,6 +275,7 @@ const ScheduleLiveForm = () => {
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 variant="outline"
+                type="button"
                 onClick={() => {
                   setIsCropModalOpen(false);
                   setSelectedImageStr(null);
@@ -251,7 +283,9 @@ const ScheduleLiveForm = () => {
               >
                 Cancel
               </Button>
-              <Button onClick={handleCropComplete}>Apply Crop</Button>
+              <Button type="button" onClick={handleCropComplete}>
+                Apply Crop
+              </Button>
             </div>
           </div>
         </div>

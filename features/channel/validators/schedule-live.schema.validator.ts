@@ -29,9 +29,7 @@ export const scheduleLiveSchema = z.object({
     }, "Date cannot be in the past"),
 
   time: z.string().trim().min(1, "Time is required"),
-  thumbnail: z
-    .custom<File>((val) => val instanceof File, "Thumbnail is required")
-    .refine((file) => file.size <= 5000000, "Max size is 5MB"),
+  thumbnail: z.string().min(1, "Thumbnail is required"),
 });
 
 export type ScheduleLiveFormValues = z.infer<typeof scheduleLiveSchema>;

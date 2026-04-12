@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// We use `any()` or specific instance checks for files,
-// but often storing the base64 string or Object URL is easiest for form submission.
 export const createChannelSchema = z.object({
   profileImage: z.string().min(1, "Profile image is required").optional(),
   channelName: z
