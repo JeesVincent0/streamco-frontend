@@ -106,7 +106,6 @@ const EditAvatarTrigger = ({
           height: number;
         },
       );
-      console.log(result);
       setCroppedImage(result);
       setImage(null);
     } catch {

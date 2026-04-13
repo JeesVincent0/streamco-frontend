@@ -99,8 +99,6 @@ const ScheduleLiveForm = () => {
   );
 
   const onSubmit = async (data: ScheduleLiveFormValues) => {
-    console.log("Form is valid! Submitting:", data);
-
     try {
       await scheduleLive({ data, channelId }).unwrap();
       toast.success("Live Scheduled successfully");
