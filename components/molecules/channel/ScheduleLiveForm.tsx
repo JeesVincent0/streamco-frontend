@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import Image from "next/image"; // <-- Added Next.js Image import
+import Image from "next/image";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Cropper, { Area } from "react-easy-crop";
@@ -26,7 +26,6 @@ const ScheduleLiveForm = () => {
   const [selectedImageStr, setSelectedImageStr] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
-  // Cropper State
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [pixelCrop, setPixelCrop] = useState({
@@ -142,7 +141,7 @@ const ScheduleLiveForm = () => {
             <label className="text-sm font-medium">Visibility</label>
             <select
               {...register("visibility")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
             >
               {Object.values(VISIBILITY).map((v) => (
                 <option key={v} value={v}>
@@ -150,11 +149,6 @@ const ScheduleLiveForm = () => {
                 </option>
               ))}
             </select>
-            {errors.visibility && (
-              <p className="text-red-500 text-xs">
-                {errors.visibility.message}
-              </p>
-            )}
           </div>
 
           <div className="space-y-1">
@@ -179,33 +173,12 @@ const ScheduleLiveForm = () => {
             {...register("description")}
             placeholder="Details about your stream..."
           />
-          {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description.message}</p>
-          )}
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Date</label>
-            <Input type="date" {...register("date")} />
-            {errors.date && (
-              <p className="text-red-500 text-xs">{errors.date.message}</p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Time</label>
-            <Input type="time" {...register("time")} />
-            {errors.time && (
-              <p className="text-red-500 text-xs">{errors.time.message}</p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Duration</label>
-            <Input {...register("duration")} placeholder="01:30" />
-            {errors.duration && (
-              <p className="text-red-500 text-xs">{errors.duration.message}</p>
-            )}
-          </div>
+          <Input type="date" {...register("date")} />
+          <Input type="time" {...register("time")} />
+          <Input {...register("duration")} placeholder="01:30" />
         </div>
 
         <div className="space-y-1">
@@ -213,28 +186,27 @@ const ScheduleLiveForm = () => {
           <div className="flex flex-col gap-2">
             <Input type="file" accept="image/*" onChange={onFileSelect} />
 
+            {/* Reserved space to prevent layout jump */}
+            {/* <div className="min-h-30"> */}
             {thumbnailBase64 && typeof thumbnailBase64 === "string" && (
               <div className="mt-2">
-                <p className="text-xs text-green-600 font-medium mb-2">
+                <p className="text-xs text-green-600 mb-2">
                   ✓ Cropped thumbnail ready
                 </p>
-                {/* UPDATED: Using Next.js Image */}
                 <Image
                   src={thumbnailBase64}
                   alt="Thumbnail Preview"
-                  width={320} // Base width (16:9 ratio)
-                  height={180} // Base height (16:9 ratio)
-                  className="h-24 w-auto object-cover rounded border shadow-sm"
+                  width={320}
+                  height={180}
+                  className="h-24 w-auto object-cover rounded border"
                 />
               </div>
             )}
+            {/* </div> */}
           </div>
-          {errors.thumbnail && (
-            <p className="text-red-500 text-xs">{errors.thumbnail.message}</p>
-          )}
         </div>
 
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
           {isSubmitting ? "Scheduling..." : "Schedule Live"}
         </Button>
       </form>
@@ -242,10 +214,10 @@ const ScheduleLiveForm = () => {
       {/* CROP MODAL */}
       {isCropModalOpen && selectedImageStr && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-background p-6 rounded-lg w-full max-w-2xl space-y-4 shadow-xl">
+          <div className="bg-background p-6 rounded-lg w-full max-w-2xl space-y-4">
             <h3 className="text-lg font-bold">Crop Thumbnail</h3>
 
-            <div className="relative h-100 w-full bg-muted border rounded overflow-hidden">
+            <div className="relative h-100 w-full bg-muted rounded">
               <Cropper
                 image={selectedImageStr}
                 crop={crop}
@@ -257,23 +229,18 @@ const ScheduleLiveForm = () => {
               />
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium">Zoom</label>
-              <input
-                type="range"
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
+            <input
+              type="range"
+              value={zoom}
+              min={1}
+              max={3}
+              step={0.1}
+              onChange={(e) => setZoom(Number(e.target.value))}
+            />
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
-                type="button"
                 onClick={() => {
                   setIsCropModalOpen(false);
                   setSelectedImageStr(null);
@@ -281,9 +248,7 @@ const ScheduleLiveForm = () => {
               >
                 Cancel
               </Button>
-              <Button type="button" onClick={handleCropComplete}>
-                Apply Crop
-              </Button>
+              <Button onClick={handleCropComplete}>Apply Crop</Button>
             </div>
           </div>
         </div>

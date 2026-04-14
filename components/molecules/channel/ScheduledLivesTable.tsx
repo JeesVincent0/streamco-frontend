@@ -13,6 +13,7 @@ import {
   CalendarX2Icon,
   MoreVerticalIcon,
   PlusIcon,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -256,6 +257,11 @@ const ScheduledLivesTable = () => {
     <div className="mx-auto w-full max-w-1150 space-y-6 px-4 py-8">
       {/* Top Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+        <Button asChild size="sm" className="h-9 gap-2 px-4">
+          <Link href={`${CHANNEL_ROUTES.SCHEDULED_LIVE.CALENDAR(channelId)}`}>
+            <Calendar className="size-4" /> Calendar
+          </Link>
+        </Button>
         <Button asChild size="sm" className="h-9 gap-2 px-4">
           <Link href={`${CHANNEL_ROUTES.SCHEDULED_LIVE.CREATE(channelId)}`}>
             <PlusIcon className="size-4" /> Schedule Live

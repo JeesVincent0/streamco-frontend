@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react"; // Use '/react' to auto-generate hooks
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
-import { LIVE_ROUTES } from "@/constants/routers/channels";
+import { CHANNEL_ROUTES, LIVE_ROUTES } from "@/constants/routers/channels";
 import { ScheduleLiveFormValues } from "@/features/channel/validators";
 
 export const liveApi = createApi({
@@ -9,6 +9,32 @@ export const liveApi = createApi({
   tagTypes: ["scheduledLives"],
 
   endpoints: (builder) => ({
+    // GET MONTH LIVES FOR CALENDER
+    getMonthLives: builder.query({
+      query: ({
+        channelId,
+        year,
+        month,
+      }: {
+        channelId: string;
+        year: number;
+        month: number;
+      }) => ({
+        url: `${LIVE_ROUTES.LIVE.ROOT}/${channelId}/month`,
+        method: "GET",
+        params: { year, month },
+      }),
+    }),
+
+    // GET LIST OF DAY LIVES FOR CALENDAE
+    getDayLives: builder.query({
+      query: ({ channelId, date }) => ({
+        url: `${LIVE_ROUTES.LIVE.ROOT}/${channelId}/day`,
+        method: "GET",
+        params: { date },
+      }),
+    }),
+
     // GET SCHEDULED LIVE
     getScheduledLives: builder.query({
       query: ({ channelId, params }) => ({
@@ -39,7 +65,9 @@ export const liveApi = createApi({
 });
 
 export const {
-  useGetScheduledLivesQuery,
+  useGetDayLivesQuery,
+  useGetMonthLivesQuery,
   useScheduleLiveMutation,
+  useGetScheduledLivesQuery,
   useCancelScheduledLiveMutation,
 } = liveApi;

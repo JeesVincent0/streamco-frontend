@@ -1,71 +1,71 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  ArrowLeft,
 } from "lucide-react";
 
-// --- Dummy RTK Query Hooks ---
-const useGetMonthLivesQuery = ({ channelId, year, month }) => {
-  return {
-    data: [
-      { date: "2026-04-01", count: 2 },
-      { date: "2026-04-03", count: 1 },
-      { date: "2026-04-13", count: 3 },
-      { date: "2026-04-14", count: 1 },
-    ],
-    isLoading: false,
-  };
+import {
+  useGetDayLivesQuery,
+  useGetMonthLivesQuery,
+} from "@/lib/service/user-api/liveApi";
+
+import { useState, useMemo } from "react";
+import CalendarSkeleton from "../CalendarSkelton";
+
+type LiveItem = {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  expectedEndAt: string;
 };
 
-const useGetDayLivesQuery = ({ channelId, date }, { skip }) => {
-  if (skip) return { data: null, isLoading: false };
-  return {
-    data: [
-      {
-        id: "live1",
-        title: "Morning Session",
-        scheduledAt: "2026-04-13T10:00:00.000Z",
-        endAt: "2026-04-13T11:00:00.000Z",
-        status: "SCHEDULED",
-        thumbnailUrl: "url",
-      },
-      {
-        id: "live2",
-        title: "Evening Show",
-        scheduledAt: "2026-04-13T18:00:00.000Z",
-        endAt: "2026-04-13T19:30:00.000Z",
-        status: "SCHEDULED",
-        thumbnailUrl: "url",
-      },
-    ],
-    isLoading: false,
-  };
-};
-
-export default function ScheduleCalendar({ channelId = "123" }) {
+export default function ScheduleCalendar({ channelId }: { channelId: string }) {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
 
-  const { data: monthData, isLoading: isMonthLoading } = useGetMonthLivesQuery({
-    channelId,
-    year,
-    month,
-  });
+  // 1. First Hook
+  const { data, isLoading: isMonthLoading } =
+    useGetMonthLivesQuery({
+      channelId,
+      year,
+      month,
+    }) || {};
+
+  const monthData = data?.data;
 
   const formattedSelectedDay = selectedDay
     ? `${selectedDay.getFullYear()}-${String(selectedDay.getMonth() + 1).padStart(2, "0")}-${String(selectedDay.getDate()).padStart(2, "0")}`
     : null;
-  const { data: dayData, isLoading: isDayLoading } = useGetDayLivesQuery(
-    { channelId, date: formattedSelectedDay },
-    { skip: !selectedDay },
-  );
+
+  // 2. Second Hook
+  const { data: dayDataResponse, isLoading: isDayLoading } =
+    useGetDayLivesQuery(
+      { channelId, date: formattedSelectedDay },
+      { skip: !selectedDay },
+    ) || {};
+
+  const dayData = dayDataResponse?.data;
+
+  const monthDataMap = useMemo(() => {
+    const map: Record<number, number> = {};
+    if (monthData) {
+      monthData.forEach((item: { date: string; count: number }) => {
+        const dateArr = item.date.split("-");
+        map[parseInt(dateArr[2])] = item.count;
+      });
+    }
+    return map;
+  }, [monthData]);
+
+  if (isMonthLoading || !monthData) {
+    return <CalendarSkeleton />;
+  }
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
@@ -89,24 +89,13 @@ export default function ScheduleCalendar({ channelId = "123" }) {
     }
   };
 
-  const handleMonthChange = (e) => {
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentDate(new Date(year, parseInt(e.target.value), 1));
   };
 
-  const handleYearChange = (e) => {
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentDate(new Date(parseInt(e.target.value), month - 1, 1));
   };
-
-  const monthDataMap = useMemo(() => {
-    const map = {};
-    if (monthData) {
-      monthData.forEach((item) => {
-        const [y, m, d] = item.date.split("-");
-        map[parseInt(d)] = item.count;
-      });
-    }
-    return map;
-  }, [monthData]);
 
   // Render Day View (Timeline)
   if (selectedDay) {
@@ -145,13 +134,13 @@ export default function ScheduleCalendar({ channelId = "123" }) {
         </div>
 
         {/* Timeline Chart */}
-        <div className="relative h-[600px] overflow-y-auto border-t border-neutral-200 dark:border-neutral-800 pt-4 custom-scrollbar">
+        <div className="relative h-150 overflow-y-auto border-t border-neutral-200 dark:border-neutral-800 pt-4 custom-scrollbar">
           {isDayLoading ? (
             <div className="flex justify-center mt-10 text-neutral-500">
               Loading schedule...
             </div>
           ) : (
-            <div className="relative min-h-[1440px]">
+            <div className="relative min-h-360">
               {/* Hourly Grid Lines */}
               {[...Array(24)].map((_, i) => (
                 <div
@@ -173,9 +162,9 @@ export default function ScheduleCalendar({ channelId = "123" }) {
               ))}
 
               {/* Scheduled Blocks */}
-              {dayData?.map((live) => {
+              {dayData?.map((live: LiveItem) => {
                 const start = new Date(live.scheduledAt);
-                const end = new Date(live.endAt);
+                const end = new Date(live.expectedEndAt);
                 const startHour = start.getHours() + start.getMinutes() / 60;
                 const durationHours =
                   (end.getTime() - start.getTime()) / (1000 * 60 * 60);
