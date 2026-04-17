@@ -47,6 +47,14 @@ type ScheduledLiveType = {
   status: string;
 };
 
+// ─── Filter Options & Styles ──────────────────────────────────────────────────
+const STATUS_OPTIONS = ["", "SCHEDULED", "CANCELLED"];
+
+const STATUS_STYLES: Record<string, string> = {
+  SCHEDULED: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
+  CANCELLED: "bg-red-500/10 text-red-500 border border-red-500/20",
+};
+
 const ScheduledLivesTable = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [cancelLive, { isLoading: isCanceling }] =
@@ -67,14 +75,14 @@ const ScheduledLivesTable = () => {
 
   const channelId = useParams().id as string;
 
+  // ─── Query Args synced with searchParams ────────────────────────────────────
   const queryArgs = useMemo(
     () => ({
       page: Number(searchParams.get("page")) || 1,
       limit: Number(searchParams.get("limit")) || 10,
-      sortBy:
-        (searchParams.get("sortBy") as "createdAt" | "title" | "date") ||
-        "createdAt",
-      order: (searchParams.get("order") as "asc" | "desc") || "desc",
+      sortBy: searchParams.get("sortBy") || "createdAt",
+      order: searchParams.get("order") || "desc",
+      status: searchParams.get("status") || "",
       search: searchParams.get("search") || "",
     }),
     [searchParams],
@@ -109,13 +117,14 @@ const ScheduledLivesTable = () => {
   };
 
   const handleSort = (field: string) => {
-    updateParams({
-      sortBy: field,
-      order:
-        queryArgs.sortBy === field && queryArgs.order === "asc"
-          ? "desc"
-          : "asc",
-    });
+    if (queryArgs.sortBy === field) {
+      updateParams({
+        sortBy: field,
+        order: queryArgs.order === "asc" ? "desc" : "asc",
+      });
+    } else {
+      updateParams({ sortBy: field, order: "asc" });
+    }
   };
 
   const handleFilter = (key: string, value: string) => {
@@ -126,8 +135,10 @@ const ScheduledLivesTable = () => {
     if (!modalState.liveId) return;
 
     try {
+      // Update the payload to match { liveId: string, channelId: string }
       await cancelLive({
-        id: modalState.liveId,
+        liveId: modalState.liveId,
+        channelId: channelId,
         queryArgs,
       }).unwrap();
 
@@ -169,7 +180,12 @@ const ScheduledLivesTable = () => {
     {
       name: "Status",
       field: "status",
-      sortable: true,
+      // Dropdown selection properly configured without sortable: true
+      filterOptions: STATUS_OPTIONS.map((opt) => ({
+        label: opt || "All",
+        value: opt,
+        styleClass: STATUS_STYLES[opt] ?? "",
+      })),
     },
     {
       name: "Actions",
@@ -199,12 +215,11 @@ const ScheduledLivesTable = () => {
       <TableCell>
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            live.status === "CANCELED"
-              ? "bg-destructive/10 text-destructive"
-              : "bg-emerald-500/10 text-emerald-600"
+            STATUS_STYLES[live.status] ??
+            "bg-muted text-muted-foreground border border-border"
           }`}
         >
-          {live.status === "CANCELED" ? "Canceled" : "Active"}
+          {live.status === "CANCELED" ? "Canceled" : live.status || "Active"}
         </span>
       </TableCell>
 
@@ -233,20 +248,21 @@ const ScheduledLivesTable = () => {
               </Link>
             </DropdownMenuItem>
 
-            <DropdownMenuItem
-              onClick={() =>
-                setModalState({
-                  isOpen: true,
-                  liveId: live.id,
-                  liveTitle: live.title,
-                })
-              }
-              className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-              disabled={live.status === "CANCELED"}
-            >
-              <CalendarX2Icon className="size-4 mr-2" />
-              Cancel Schedule
-            </DropdownMenuItem>
+            {live.status === "SCHEDULED" && (
+              <DropdownMenuItem
+                onClick={() =>
+                  setModalState({
+                    isOpen: true,
+                    liveId: live.id,
+                    liveTitle: live.title,
+                  })
+                }
+                className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <CalendarX2Icon className="size-4 mr-2" />
+                Cancel Schedule
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>

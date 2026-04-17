@@ -18,8 +18,13 @@ import CalendarSkeleton from "../CalendarSkelton";
 type LiveItem = {
   id: string;
   title: string;
-  scheduledAt: string;
+  scheduleAt: string;
   expectedEndAt: string;
+};
+
+type ProcessedLiveItem = LiveItem & {
+  colIndex: number;
+  numCols: number;
 };
 
 export default function ScheduleCalendar({ channelId }: { channelId: string }) {
@@ -29,7 +34,6 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
 
-  // 1. First Hook
   const { data, isLoading: isMonthLoading } =
     useGetMonthLivesQuery({
       channelId,
@@ -43,7 +47,6 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
     ? `${selectedDay.getFullYear()}-${String(selectedDay.getMonth() + 1).padStart(2, "0")}-${String(selectedDay.getDate()).padStart(2, "0")}`
     : null;
 
-  // 2. Second Hook
   const { data: dayDataResponse, isLoading: isDayLoading } =
     useGetDayLivesQuery(
       { channelId, date: formattedSelectedDay },
@@ -54,14 +57,82 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
 
   const monthDataMap = useMemo(() => {
     const map: Record<number, number> = {};
-    if (monthData) {
+    if (monthData && Array.isArray(monthData)) {
       monthData.forEach((item: { date: string; count: number }) => {
-        const dateArr = item.date.split("-");
-        map[parseInt(dateArr[2])] = item.count;
+        const itemDate = new Date(item.date);
+        if (!isNaN(itemDate.getTime())) {
+          map[itemDate.getDate()] = item.count;
+        }
       });
     }
     return map;
   }, [monthData]);
+
+  const processedDayData = useMemo(() => {
+    if (!dayData) return [];
+    
+    const sorted = [...dayData].sort(
+      (a, b) => new Date(a.scheduleAt).getTime() - new Date(b.scheduleAt).getTime()
+    );
+
+    const groups: LiveItem[][] = [];
+    let currentGroup: LiveItem[] = [];
+    let groupEnd = 0;
+
+    sorted.forEach((event) => {
+      const start = new Date(event.scheduleAt).getTime();
+      const end = new Date(event.expectedEndAt).getTime();
+
+      if (currentGroup.length === 0) {
+        currentGroup.push(event);
+        groupEnd = end;
+      } else if (start < groupEnd) {
+        currentGroup.push(event);
+        groupEnd = Math.max(groupEnd, end);
+      } else {
+        groups.push(currentGroup);
+        currentGroup = [event];
+        groupEnd = end;
+      }
+    });
+    
+    if (currentGroup.length > 0) groups.push(currentGroup);
+
+    const processed: ProcessedLiveItem[] = [];
+
+    groups.forEach((group) => {
+      const columns: LiveItem[][] = [];
+      
+      group.forEach((event) => {
+        let placed = false;
+        for (let i = 0; i < columns.length; i++) {
+          const lastEvent = columns[i][columns[i].length - 1];
+          if (
+            new Date(event.scheduleAt).getTime() >=
+            new Date(lastEvent.expectedEndAt).getTime()
+          ) {
+            columns[i].push(event);
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) columns.push([event]);
+      });
+
+      const numCols = columns.length;
+      columns.forEach((col, colIndex) => {
+        col.forEach((event) => {
+          processed.push({
+            ...event,
+            colIndex,
+            numCols,
+          });
+        });
+      });
+    });
+
+    return processed;
+  }, [dayData]);
 
   if (isMonthLoading || !monthData) {
     return <CalendarSkeleton />;
@@ -97,11 +168,9 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
     setCurrentDate(new Date(parseInt(e.target.value), month - 1, 1));
   };
 
-  // Render Day View (Timeline)
   if (selectedDay) {
     return (
       <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-black text-black dark:text-white rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm transition-colors duration-200">
-        {/* Day View Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setSelectedDay(null)}
@@ -133,15 +202,13 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
           </div>
         </div>
 
-        {/* Timeline Chart */}
-        <div className="relative h-150 overflow-y-auto border-t border-neutral-200 dark:border-neutral-800 pt-4 custom-scrollbar">
+        <div className="relative h-[600px] overflow-y-auto border-t border-neutral-200 dark:border-neutral-800 pt-4 custom-scrollbar">
           {isDayLoading ? (
             <div className="flex justify-center mt-10 text-neutral-500">
               Loading schedule...
             </div>
           ) : (
-            <div className="relative min-h-360">
-              {/* Hourly Grid Lines */}
+            <div className="relative min-h-[1440px]">
               {[...Array(24)].map((_, i) => (
                 <div
                   key={i}
@@ -161,9 +228,8 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
                 </div>
               ))}
 
-              {/* Scheduled Blocks */}
-              {dayData?.map((live: LiveItem) => {
-                const start = new Date(live.scheduledAt);
+              {processedDayData?.map((live: ProcessedLiveItem) => {
+                const start = new Date(live.scheduleAt);
                 const end = new Date(live.expectedEndAt);
                 const startHour = start.getHours() + start.getMinutes() / 60;
                 const durationHours =
@@ -172,14 +238,19 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
                 const topPos = (startHour / 24) * 100;
                 const heightPct = (durationHours / 24) * 100;
 
+                const leftOffset = `calc(3.5rem + ((100% - 4.5rem) / ${live.numCols}) * ${live.colIndex})`;
+                const widthStr = `calc(((100% - 4.5rem) / ${live.numCols}) - ${live.numCols > 1 ? 4 : 0}px)`;
+
                 return (
                   <div
                     key={live.id}
-                    className="absolute left-14 right-4 bg-[#C35B00]/10 dark:bg-[#C35B00]/20 border-l-4 border-[#C35B00] rounded-r-md p-3 shadow-sm overflow-hidden transition-all hover:bg-[#C35B00]/20 dark:hover:bg-[#C35B00]/30 cursor-default"
+                    className="absolute bg-[#C35B00]/10 dark:bg-[#C35B00]/20 border-l-4 border-[#C35B00] rounded-r-md p-3 shadow-sm overflow-hidden transition-all hover:bg-[#C35B00]/20 dark:hover:bg-[#C35B00]/30 cursor-default"
                     style={{
                       top: `${topPos}%`,
                       height: `${heightPct}%`,
                       minHeight: "24px",
+                      left: leftOffset,
+                      width: widthStr,
                     }}
                   >
                     <div className="text-sm font-bold text-[#C35B00] truncate tracking-tight">
@@ -206,10 +277,8 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
     );
   }
 
-  // Render Month View
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-black text-black dark:text-white rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm transition-colors duration-200">
-      {/* Month Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-2">
           <CalendarIcon className="w-5 h-5 text-[#C35B00]" />
@@ -270,7 +339,6 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
         </div>
       </div>
 
-      {/* Days of Week */}
       <div className="grid grid-cols-7 mb-3">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
@@ -282,9 +350,7 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
         ))}
       </div>
 
-      {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-3 mt-4">
-        {/* Empty slots */}
         {[...Array(firstDayOfMonth)].map((_, i) => (
           <div
             key={`empty-${i}`}
@@ -292,7 +358,6 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
           />
         ))}
 
-        {/* Actual Days */}
         {[...Array(daysInMonth)].map((_, i) => {
           const day = i + 1;
           const count = monthDataMap[day];
@@ -307,7 +372,6 @@ export default function ScheduleCalendar({ channelId }: { channelId: string }) {
                 {day}
               </span>
 
-              {/* Stream Count Badge */}
               {count > 0 && (
                 <div className="mt-auto w-full">
                   <div className="bg-[#C35B00] text-white text-[10px] font-bold px-2 py-1 rounded-md text-center shadow-sm w-full truncate">

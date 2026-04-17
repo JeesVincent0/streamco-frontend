@@ -56,10 +56,36 @@ export const liveApi = createApi({
 
     // CANCEL SCHEDULED LIVE
     cancelScheduledLive: builder.mutation({
-      query: ({ liveId }) => ({
-        url: `${LIVE_ROUTES.LIVE.ROOT}/${LIVE_ROUTES.LIVE.SCHEDULED}/${liveId}`,
-        method: "DELETE",
+      query: ({ liveId, channelId }) => ({
+        url: `${LIVE_ROUTES.LIVE.ROOT}/${LIVE_ROUTES.LIVE.SCHEDULED}/${channelId}/${liveId}`,
+        method: "PATCH",
       }),
+
+      async onQueryStarted(
+        { liveId, channelId, queryArgs },
+        { dispatch, queryFulfilled },
+      ) {
+        const patchResult = dispatch(
+          liveApi.util.updateQueryData(
+            "getScheduledLives",
+            { channelId, params: queryArgs }, // ✅ exact match
+            (draft: any) => {
+              const live = draft?.data?.scheduledLives?.find(
+                (l: any) => l.id === liveId,
+              );
+              if (live) {
+                live.status = "CANCELLED";
+              }
+            },
+          ),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
     }),
   }),
 });
