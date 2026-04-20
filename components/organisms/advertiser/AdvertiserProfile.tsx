@@ -7,6 +7,7 @@ import { useGetUserProfileQuery } from "@/lib/service/user-api/settingsApi";
 
 const AdvertiserProfile = () => {
   const { data, isLoading } = useGetUserProfileQuery();
+  console.log(data?.data);
 
   if (isLoading) return <Loading />;
   return (
@@ -14,18 +15,18 @@ const AdvertiserProfile = () => {
       {/* 1. Header Profile Section */}
       <ProfileHeader
         data={{
-          displayName: data?.displayName || "",
-          avatarUrl: data?.avatarUrl || "",
-          isVerified: data?.isVerified || false,
-          isProfileCompleted: data?.isProfileCompleted || false,
+          displayName: data?.data.displayName || "",
+          avatarUrl: data?.data.avatarUrl || "",
+          isVerified: data?.data.isVerified || false,
+          isProfileCompleted: data?.data.isProfileCompleted || false,
         }}
       />
       {/* 2. Basic Details Section */}
       <ProfileBasicDetailsAdvertiser
         data={{
-          displayName: data?.displayName || "",
-          email: data?.email || "",
-          companyName: data?.companyName || "",
+          displayName: data?.data.displayName || "",
+          email: data?.data.email || "",
+          companyName: data?.data.companyName || "",
         }}
       />
     </div>
