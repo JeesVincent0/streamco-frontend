@@ -137,7 +137,7 @@ const ScheduledLivesTable = () => {
     {
       name: "Channel Name",
       field: "channelName",
-      sortable: true,
+      sortable: false,
     },
     {
       name: "Action",
