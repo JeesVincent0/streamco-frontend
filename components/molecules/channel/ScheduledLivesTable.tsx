@@ -42,6 +42,7 @@ import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton"
 type ScheduledLiveType = {
   id: string;
   title: string;
+  scheduledAt: string;
   date: string;
   time: string;
   status: string;
@@ -94,8 +95,33 @@ const ScheduledLivesTable = () => {
     isFetching,
   } = useGetScheduledLivesQuery({ channelId, params: queryArgs });
 
-  const scheduledLives: ScheduledLiveType[] =
-    response?.data?.scheduledLives || [];
+  // ─── Derived Data ─────────────────────────────────────────────────────────
+  const scheduledLives: ScheduledLiveType[] = useMemo(() => {
+    const lives = response?.data?.scheduledLives || [];
+
+    return lives.map((live: { scheduledAt: Date }) => {
+      // Create a Date object from the ISO string
+      const dateObj = new Date(live.scheduledAt);
+
+      // Extract local date and time
+      const localDate = dateObj.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+
+      const localTime = dateObj.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return {
+        ...live,
+        date: localDate,
+        time: localTime,
+      };
+    });
+  }, [response?.data?.scheduledLives]);
 
   const totalPages = response?.data?.pagination?.totalPages || 0;
 
@@ -135,7 +161,6 @@ const ScheduledLivesTable = () => {
     if (!modalState.liveId) return;
 
     try {
-      // Update the payload to match { liveId: string, channelId: string }
       await cancelLive({
         liveId: modalState.liveId,
         channelId: channelId,
@@ -146,7 +171,6 @@ const ScheduledLivesTable = () => {
         `Scheduled live "${modalState.liveTitle}" was canceled successfully.`,
       );
 
-      // Close modal and menu
       setModalState((prev) => ({ ...prev, isOpen: false }));
       setOpenMenuId(null);
     } catch (err: unknown) {
@@ -169,7 +193,7 @@ const ScheduledLivesTable = () => {
     },
     {
       name: "Date",
-      field: "date",
+      field: "scheduledAt",
       sortable: true,
     },
     {
@@ -180,7 +204,6 @@ const ScheduledLivesTable = () => {
     {
       name: "Status",
       field: "status",
-      // Dropdown selection properly configured without sortable: true
       filterOptions: STATUS_OPTIONS.map((opt) => ({
         label: opt || "All",
         value: opt,

@@ -64,7 +64,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
       const currentPage = response.data.pagination.page;
       const totalPages = response.data.pagination.totalPages;
 
-      setHasMore(currentPage < totalPages); // ✅ FIXED
+      setHasMore(currentPage < totalPages); 
     }
   }, [response, page]);
 

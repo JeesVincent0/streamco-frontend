@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react"; // Use '/react' to auto-generate hooks
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
-import { CHANNEL_ROUTES, LIVE_ROUTES } from "@/constants/routers/channels";
+import { LIVE_ROUTES } from "@/constants/routers/channels";
 import { ScheduleLiveFormValues } from "@/features/channel/validators";
 
 export const liveApi = createApi({
@@ -69,9 +69,11 @@ export const liveApi = createApi({
           liveApi.util.updateQueryData(
             "getScheduledLives",
             { channelId, params: queryArgs }, // ✅ exact match
-            (draft: any) => {
+            (draft: {
+              data: { scheduledLives: { id: string; status: string }[] };
+            }) => {
               const live = draft?.data?.scheduledLives?.find(
-                (l: any) => l.id === liveId,
+                (l: { id: string }) => l.id === liveId,
               );
               if (live) {
                 live.status = "CANCELLED";

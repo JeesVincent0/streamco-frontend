@@ -99,7 +99,14 @@ const ScheduleLiveForm = () => {
 
   const onSubmit = async (data: ScheduleLiveFormValues) => {
     try {
-      await scheduleLive({ data, channelId }).unwrap();
+      const localDateTime = new Date(`${data.date}T${data.time}`);
+      const scheduledAt = localDateTime.toISOString();
+      const payload = {
+        ...data,
+        scheduledAt,
+      };
+
+      await scheduleLive({ data: payload, channelId }).unwrap();
       toast.success("Live Scheduled successfully");
       router.push(CHANNEL_ROUTES.SCHEDULED_LIVE.ROOT(channelId));
     } catch (err) {
@@ -109,9 +116,9 @@ const ScheduleLiveForm = () => {
           error?: { code: ErrorCode; message: string };
         };
       };
-      if (error.data.error?.code) {
+      if (error.data?.error?.code) {
         toast.error(error.data.error.message);
-        setGlobalErrorCode(error.data.error?.code);
+        setGlobalErrorCode(error.data.error.code);
         return;
       }
       toast.error(error?.data?.message || "An error occurred");

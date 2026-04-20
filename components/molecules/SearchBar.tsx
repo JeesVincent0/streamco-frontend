@@ -1,26 +1,43 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+  useParams, // <-- Import useParams
+} from "next/navigation";
 import { SearchIcon, XIcon } from "lucide-react";
 
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { ButtonGroup } from "../atoms/button-group";
 import { ADMIN_ROUTES } from "@/constants/routers";
-
-const SEARCH_CONFIG: Record<string, { placeholder: string }> = {
-  [ADMIN_ROUTES.USERS.ROOT]: { placeholder: "Search users..." },
-  [ADMIN_ROUTES.CATEGORIES.ROOT]: { placeholder: "Search categories..." },
-  [ADMIN_ROUTES.CHANNELS.ROOT]: { placeholder: "Search channels..." },
-};
+import { CHANNEL_ROUTES } from "@/constants/routers/channels";
 
 const SearchBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useParams(); // <-- Get route parameters
+  const id = params?.id as string; // <-- Extract 'id' (adjust if your folder uses a different name like [channelId])
 
-  // 2. Look up the current route in our configuration map
+  // Move the config inside the component so it can use the dynamic 'id'
+  const SEARCH_CONFIG: Record<string, { placeholder: string }> = useMemo(
+    () => ({
+      [ADMIN_ROUTES.USERS.ROOT]: { placeholder: "Search users..." },
+      [ADMIN_ROUTES.CATEGORIES.ROOT]: { placeholder: "Search categories..." },
+      [ADMIN_ROUTES.CHANNELS.ROOT]: { placeholder: "Search channels..." },
+      // Only add the scheduled live route if an id exists
+      ...(id && {
+        [CHANNEL_ROUTES.SCHEDULED_LIVE.ROOT(id)]: {
+          placeholder: "Search scheduled live...",
+        },
+      }),
+    }),
+    [id],
+  );
+
   const currentConfig = SEARCH_CONFIG[pathname];
 
   const search = searchParams.get("search") || "";
@@ -32,16 +49,16 @@ const SearchBar = () => {
 
   const handleSearch = useCallback(
     (valueToSearch: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const currentParams = new URLSearchParams(searchParams.toString());
 
       if (valueToSearch.trim() !== "") {
-        params.set("search", valueToSearch.trim());
+        currentParams.set("search", valueToSearch.trim());
       } else {
-        params.delete("search");
+        currentParams.delete("search");
       }
 
-      params.set("page", "1");
-      router.push(`${pathname}?${params.toString()}`);
+      currentParams.set("page", "1");
+      router.push(`${pathname}?${currentParams.toString()}`);
     },
     [pathname, router, searchParams],
   );
