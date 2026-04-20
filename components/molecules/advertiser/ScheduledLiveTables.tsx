@@ -42,19 +42,19 @@ const ScheduledLivesTable = () => {
     [searchParams],
   );
 
-  // Added isLoading to prevent rendering the table before data is ready
   const { data: response, isLoading } = useGetScheduledLviesQuery({
     params: queryArgs,
   });
-  const data = response?.data;
+
+  // Extract data properly
+  const responseData = response?.data;
+  const scheduledLivesData = responseData?.scheduledLives;
 
   // ─── Formatting ─────────────────────────────────────────────────────────────
   const scheduledLives: MappedScheduledLiveType[] = useMemo(() => {
-    // 1. Safe check: If data is undefined or not an array, return an empty array
-    if (!data || !Array.isArray(data)) return [];
+    if (!scheduledLivesData || !Array.isArray(scheduledLivesData)) return [];
 
-    // 2. Format the date and time
-    return data.map((live: ScheduledLiveType) => {
+    return scheduledLivesData.map((live: ScheduledLiveType) => {
       const dateObj = new Date(live.scheduledAt);
 
       const localDate = dateObj.toLocaleDateString(undefined, {
@@ -74,10 +74,9 @@ const ScheduledLivesTable = () => {
         time: localTime,
       };
     });
-  }, [data]); // <-- FIXED: Added 'data' to the dependency array
+  }, [scheduledLivesData]);
 
-  // Note: Update this to use your API's actual pagination if available (e.g., response?.pagination?.totalPages)
-  const totalPages = 1;
+  const totalPages = responseData?.pagination?.totalPages || 0;
 
   // ─── URL Param Handlers ───────────────────────────────────────────────────
   const updateParams = (updates: Record<string, string>) => {
@@ -181,7 +180,6 @@ const ScheduledLivesTable = () => {
 
   return (
     <div className="mx-auto w-full max-w-300 space-y-6 px-4 py-8">
-      {/* Optional: Add a loading state here while the API fetches */}
       {isLoading ? (
         <p className="text-center text-muted-foreground py-16">
           Loading schedules...
