@@ -11,6 +11,17 @@ import ReusableTable from "@/components/molecules/table/ReusableTable";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useGetScheduledLviesQuery } from "@/lib/service/advertisre-api";
 
+const STATUS_OPTIONS = [
+  { label: "All", value: "", styleKey: "" },
+  { label: "Started", value: "true", styleKey: "TRUE" },
+  { label: "Not Started", value: "false", styleKey: "FALSE" },
+];
+
+const STATUS_STYLES: Record<string, string> = {
+  TRUE: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
+  FALSE: "bg-red-500/10 text-red-500 border border-red-500/20",
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────
 type ScheduledLiveType = {
   id: string;
@@ -18,6 +29,7 @@ type ScheduledLiveType = {
   category: string;
   scheduledAt: string;
   channelName: string;
+  isAuctionRunning?: boolean;
 };
 
 type MappedScheduledLiveType = ScheduledLiveType & {
@@ -37,6 +49,7 @@ const ScheduledLivesTable = () => {
       limit: Number(searchParams.get("limit")) || 10,
       sortBy: searchParams.get("sortBy") || "scheduledAt",
       order: searchParams.get("order") || "desc",
+      isAuctionStarted: searchParams.get("isAuctionStarted") || "",
       search: searchParams.get("search") || "",
     }),
     [searchParams],
@@ -140,6 +153,15 @@ const ScheduledLivesTable = () => {
       sortable: false,
     },
     {
+      name: "Auction (Started / not started)",
+      field: "isAuctionStarted",
+      filterOptions: STATUS_OPTIONS.map((opt) => ({
+        label: opt.label,
+        value: opt.value,
+        styleClass: STATUS_STYLES[opt.styleKey] ?? "",
+      })),
+    },
+    {
       name: "Action",
       align: "right",
     },
@@ -166,6 +188,16 @@ const ScheduledLivesTable = () => {
       </TableCell>
 
       <TableCell className="whitespace-nowrap">{live.channelName}</TableCell>
+      <TableCell className="whitespace-nowrap">
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            STATUS_STYLES[live.isAuctionRunning ? "TRUE" : "FALSE"] ??
+            "bg-muted text-muted-foreground border border-border"
+          }`}
+        >
+          {live.isAuctionRunning ? `STARTED` : `NOT STARTED`}
+        </span>
+      </TableCell>
 
       <TableCell className="text-right">
         <Button asChild size="sm" className="gap-2 px-4">
