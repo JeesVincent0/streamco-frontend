@@ -1,55 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import Loading from "../common/LoadingPage";
+import { useGetAuctionOverviewQuery } from "@/lib/service/advertisre-api/auction.api";
 
-// ==========================================
-// TYPES (Ready for RTK Query integration)
-// ==========================================
 export interface LiveOverviewData {
   id: string;
   channelName: string;
-  avatarUrl: string;
+  profileImageUrl: string;
   category: string;
   date: string;
   time: string;
   thumbnailUrl: string;
   title: string;
   duration: string;
-  avgBidPrice: string;
-  liveSubscribedLive: string;
-  subscribers: string;
-  avgViewers: string;
-  liveSubscribedChannel: string;
+  avgBidPrice: number;
+  liveSubscribedLive: number;
+  subscribers: number;
+  avgViewers: number;
+  liveSubscribedChannel: number;
   lastSponsor: string;
 }
-
-// ==========================================
-// DUMMY DATA
-// ==========================================
-const dummyData: LiveOverviewData = {
-  id: "1",
-  channelName: "CallMeShazzam TECH",
-  avatarUrl: "https://i.pravatar.cc/150?u=shazzam", // Placeholder avatar
-  category: "Tech",
-  date: "25-Jan-2026",
-  time: "09:00am",
-  thumbnailUrl:
-    "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&q=80", // Placeholder thumbnail
-  title: "Custom Duty In India | My Experience | be careful!! | Malayalam",
-  duration: "1 Hour",
-  avgBidPrice: "₹84,500/-",
-  liveSubscribedLive: "3456",
-  subscribers: "1.45m",
-  avgViewers: "53485",
-  liveSubscribedChannel: "3456",
-  lastSponsor: "Kalyan Silks",
-};
 
 // ==========================================
 // SUB-COMPONENTS
 // ==========================================
 
-// Custom SVG Donut Chart to avoid heavy third-party dependencies
 const DonutChart = ({
   title,
   segments,
@@ -129,8 +106,15 @@ const DonutChart = ({
 // MAIN COMPONENT
 // ==========================================
 export default function ScheduledLiveCard() {
-  const [isOpen, setIsOpen] = useState(true); // Default open for demonstration
-  const data = dummyData; // Replace with RTK Query data e.g., const { data } = useGetScheduledLiveQuery(id);
+  const id = useParams().id;
+  const [isOpen, setIsOpen] = useState(true);
+
+  const queryId = Array.isArray(id) ? id[0] : id;
+  const { data: response, isLoading } = useGetAuctionOverviewQuery(queryId);
+
+  if (isLoading || !response?.data) return <Loading />;
+
+  const data = response.data;
 
   return (
     <div className="w-full max-w-6xl mx-auto dark:bg-[#131313] border border-neutral-700 rounded-xl overflow-hidden font-sans text-white shadow-lg">
@@ -142,7 +126,7 @@ export default function ScheduledLiveCard() {
         {/* Left Side: Avatar & Name */}
         <div className="flex items-center gap-4 mb-3 sm:mb-0">
           <img
-            src={data.avatarUrl}
+            src={data.profileImageUrl}
             alt={data.channelName}
             className="w-10 h-10 rounded-full object-cover border border-neutral-600"
           />
@@ -215,10 +199,18 @@ export default function ScheduledLiveCard() {
                 <span className="font-medium">: {data.duration}</span>
 
                 <span className="text-neutral-400">Avg. Bid price</span>
-                <span className="font-medium">: {data.avgBidPrice}</span>
+                <span className="font-medium">
+                  :{" "}
+                  {data.avgBidPrice.toLocaleString("en-IN", {
+                    style: "currency",
+                    currency: "INR",
+                  })}
+                </span>
 
                 <span className="text-neutral-400">Live Subscribed</span>
-                <span className="font-medium">: {data.liveSubscribedLive}</span>
+                <span className="font-medium">
+                  : {data.liveSubscribedLive.toLocaleString()}
+                </span>
               </div>
             </div>
 
@@ -232,14 +224,18 @@ export default function ScheduledLiveCard() {
                 {/* Stats List */}
                 <div className="flex-1 grid grid-cols-[130px_1fr] content-start gap-y-4 text-sm mt-2">
                   <span className="text-neutral-400">Subscribers</span>
-                  <span className="font-medium">: {data.subscribers}</span>
+                  <span className="font-medium">
+                    : {(data.subscribers / 1000000).toFixed(2)}m
+                  </span>
 
                   <span className="text-neutral-400">Avg. viewers</span>
-                  <span className="font-medium">: {data.avgViewers}</span>
+                  <span className="font-medium">
+                    : {data.avgViewers.toLocaleString()}
+                  </span>
 
                   <span className="text-neutral-400">Live Subscribed</span>
                   <span className="font-medium">
-                    : {data.liveSubscribedChannel}
+                    : {data.liveSubscribedChannel.toLocaleString()}
                   </span>
 
                   <span className="text-neutral-400">Last Sponsor</span>

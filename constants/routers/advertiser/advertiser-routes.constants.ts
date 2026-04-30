@@ -7,6 +7,7 @@ export const ADVERTISER_ROUTES = {
     SCHEDULED_LIVE: {
       ROOT: `${ROOT}/scheduled-live`,
       ACTION: (id: string) => `${ROOT}/scheduled-live/${id}/auction`,
+      ACTION_ANALYTICS: (id: string) => `${ROOT}/scheduled-live/${id}/auction-analytics`,
     },
     SPONSORED: `${ROOT}/sponsored`,
     BANNERS: `${ROOT}/banners`,

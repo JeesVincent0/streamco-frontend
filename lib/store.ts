@@ -7,6 +7,7 @@ import { settingApi } from "./service/user-api/settingsApi";
 import { channelApi } from "./service/user-api/channelApi";
 import { liveApi } from "./service/user-api/liveApi";
 import { scheduledLiveApi } from "./service/advertisre-api";
+import { auctionApi } from "./service/advertisre-api/auction.api";
 
 const rootReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
   [userApi.reducerPath]: userApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
+  [auctionApi.reducerPath]: auctionApi.reducer,
   [channelApi.reducerPath]: channelApi.reducer,
   [categoryApi.reducerPath]: categoryApi.reducer,
   [scheduledLiveApi.reducerPath]: scheduledLiveApi.reducer,
@@ -29,6 +31,7 @@ export const store = configureStore({
       liveApi.middleware,
       adminApi.middleware,
       settingApi.middleware,
+      auctionApi.middleware,
       channelApi.middleware,
       categoryApi.middleware,
       scheduledLiveApi.middleware,
