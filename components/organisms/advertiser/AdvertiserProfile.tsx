@@ -7,7 +7,6 @@ import { useGetUserProfileQuery } from "@/lib/service/user-api/settingsApi";
 
 const AdvertiserProfile = () => {
   const { data, isLoading } = useGetUserProfileQuery();
-  console.log(data?.data);
 
   if (isLoading) return <Loading />;
   return (
