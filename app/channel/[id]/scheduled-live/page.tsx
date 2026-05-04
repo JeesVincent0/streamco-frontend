@@ -1,5 +1,7 @@
+import ScheduledLivesTable from "@/components/organisms/channel/ScheduledLives";
+
 const page = () => {
-  return <div>Coming soon...</div>;
+  return <ScheduledLivesTable />;
 };
 
 export default page;

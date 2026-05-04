@@ -30,7 +30,6 @@ const UserDetails = () => {
   const router = useRouter();
 
   const { data: response, isLoading, isError } = useGetUserByIdQuery(userId);
-  console.log("this is admin user view data: ", response);
   const user = response?.data;
 
   const [updateUserStatus, { isLoading: isUpdating }] =

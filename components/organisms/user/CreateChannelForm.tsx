@@ -49,7 +49,6 @@ const getCroppedImg = async (
   return canvas.toDataURL("image/jpeg");
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 const CreateChannelForm = () => {
   const router = useRouter();
   const [createChannel] = useCreateChannelMutation();

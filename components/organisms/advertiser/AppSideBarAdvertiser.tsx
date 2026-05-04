@@ -50,10 +50,10 @@ const AppSideBarAdvertiser = ({
           </SidebarMenuButton>
           <SidebarMenuButton
             onClick={() =>
-              handleNavigation(ADVERTISER_ROUTES.HOME.SHEDULED_LIVE)
+              handleNavigation(ADVERTISER_ROUTES.HOME.SCHEDULED_LIVE.ROOT)
             }
             className={
-              startingPath === ADVERTISER_ROUTES.HOME.SHEDULED_LIVE
+              startingPath === ADVERTISER_ROUTES.HOME.SCHEDULED_LIVE.ROOT
                 ? buttonClassName.SELECTED
                 : buttonClassName.DEFAULT
             }

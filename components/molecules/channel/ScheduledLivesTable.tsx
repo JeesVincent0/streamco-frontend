@@ -1,0 +1,343 @@
+"use client";
+
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
+import {
+  EyeIcon,
+  XCircleIcon,
+  CalendarX2Icon,
+  MoreVerticalIcon,
+  PlusIcon,
+  Calendar,
+} from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/atoms/dropdown-menu";
+
+import {
+  useGetScheduledLivesQuery,
+  useCancelScheduledLiveMutation,
+} from "@/lib/service/user-api/liveApi";
+
+import Link from "next/link";
+import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { CHANNEL_ROUTES } from "@/constants/routers/channels";
+import { TableRow, TableCell } from "@/components/atoms/table";
+import { TableColumn } from "@/components/molecules/table/types";
+import PopupModal from "@/components/molecules/common/PopupModal";
+import ReusableTable from "@/components/molecules/table/ReusableTable";
+import TableLoadingSkelton from "@/components/atoms/loading/TableLoadingSkelton";
+
+type ScheduledLiveType = {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  date: string;
+  time: string;
+  status: string;
+};
+
+// ─── Filter Options & Styles ──────────────────────────────────────────────────
+const STATUS_OPTIONS = ["", "SCHEDULED", "CANCELLED"];
+
+const STATUS_STYLES: Record<string, string> = {
+  SCHEDULED: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
+  CANCELLED: "bg-red-500/10 text-red-500 border border-red-500/20",
+};
+
+const ScheduledLivesTable = () => {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [cancelLive, { isLoading: isCanceling }] =
+    useCancelScheduledLiveMutation();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    liveId: string;
+    liveTitle: string;
+  }>({
+    isOpen: false,
+    liveId: "",
+    liveTitle: "",
+  });
+
+  const channelId = useParams().id as string;
+
+  // ─── Query Args synced with searchParams ────────────────────────────────────
+  const queryArgs = useMemo(
+    () => ({
+      page: Number(searchParams.get("page")) || 1,
+      limit: Number(searchParams.get("limit")) || 10,
+      sortBy: searchParams.get("sortBy") || "createdAt",
+      order: searchParams.get("order") || "desc",
+      status: searchParams.get("status") || "",
+      search: searchParams.get("search") || "",
+    }),
+    [searchParams],
+  );
+
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useGetScheduledLivesQuery({ channelId, params: queryArgs });
+
+  // ─── Derived Data ─────────────────────────────────────────────────────────
+  const scheduledLives: ScheduledLiveType[] = useMemo(() => {
+    const lives = response?.data?.scheduledLives || [];
+
+    return lives.map((live: { scheduledAt: Date }) => {
+      // Create a Date object from the ISO string
+      const dateObj = new Date(live.scheduledAt);
+
+      // Extract local date and time
+      const localDate = dateObj.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+
+      const localTime = dateObj.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return {
+        ...live,
+        date: localDate,
+        time: localTime,
+      };
+    });
+  }, [response?.data?.scheduledLives]);
+
+  const totalPages = response?.data?.pagination?.totalPages || 0;
+
+  const updateParams = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val === "" || val === null) {
+        params.delete(key);
+      } else {
+        params.set(key, String(val));
+      }
+    });
+
+    if (updates.sortBy || updates.status || updates.order) {
+      params.set("page", "1");
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSort = (field: string) => {
+    if (queryArgs.sortBy === field) {
+      updateParams({
+        sortBy: field,
+        order: queryArgs.order === "asc" ? "desc" : "asc",
+      });
+    } else {
+      updateParams({ sortBy: field, order: "asc" });
+    }
+  };
+
+  const handleFilter = (key: string, value: string) => {
+    updateParams({ [key]: value });
+  };
+
+  const executeAction = async () => {
+    if (!modalState.liveId) return;
+
+    try {
+      await cancelLive({
+        liveId: modalState.liveId,
+        channelId: channelId,
+        queryArgs,
+      }).unwrap();
+
+      toast.success(
+        `Scheduled live "${modalState.liveTitle}" was canceled successfully.`,
+      );
+
+      setModalState((prev) => ({ ...prev, isOpen: false }));
+      setOpenMenuId(null);
+    } catch (err: unknown) {
+      const error = err as { data: { data: { message: string } } };
+      toast.error(
+        error?.data?.data?.message || "Failed to cancel scheduled live",
+      );
+    }
+  };
+
+  // Loading State
+  if (isLoading || isFetching) return <TableLoadingSkelton />;
+
+  const columns: TableColumn[] = [
+    {
+      name: "Title",
+      field: "title",
+      sortable: true,
+      className: "w-[300px]",
+    },
+    {
+      name: "Date",
+      field: "scheduledAt",
+      sortable: true,
+    },
+    {
+      name: "Time",
+      field: "time",
+      sortable: false,
+    },
+    {
+      name: "Status",
+      field: "status",
+      filterOptions: STATUS_OPTIONS.map((opt) => ({
+        label: opt || "All",
+        value: opt,
+        styleClass: STATUS_STYLES[opt] ?? "",
+      })),
+    },
+    {
+      name: "Actions",
+      align: "right",
+    },
+  ];
+
+  const renderRow = (live: ScheduledLiveType) => (
+    <TableRow
+      key={live.id}
+      className="border-b border-border hover:bg-muted/30 transition-colors"
+    >
+      <TableCell
+        className="py-4 text-sm font-medium text-foreground max-w-75 truncate"
+        title={live.title}
+      >
+        {live.title}
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">{live.date}</TableCell>
+
+      <TableCell className="whitespace-nowrap text-muted-foreground">
+        {live.time}
+      </TableCell>
+
+      {/* Status Cell */}
+      <TableCell>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            STATUS_STYLES[live.status] ??
+            "bg-muted text-muted-foreground border border-border"
+          }`}
+        >
+          {live.status === "CANCELED" ? "Canceled" : live.status || "Active"}
+        </span>
+      </TableCell>
+
+      <TableCell className="text-right">
+        <DropdownMenu
+          open={openMenuId === live.id}
+          onOpenChange={(val) => setOpenMenuId(val ? live.id : null)}
+        >
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+            >
+              <MoreVerticalIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            <DropdownMenuItem asChild>
+              <Link
+                href={CHANNEL_ROUTES.SCHEDULED_LIVE.VIEW(channelId, live.id)}
+                className="cursor-pointer flex items-center"
+              >
+                <EyeIcon className="size-4 mr-2" />
+                View Details
+              </Link>
+            </DropdownMenuItem>
+
+            {live.status === "SCHEDULED" && (
+              <DropdownMenuItem
+                onClick={() =>
+                  setModalState({
+                    isOpen: true,
+                    liveId: live.id,
+                    liveTitle: live.title,
+                  })
+                }
+                className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <CalendarX2Icon className="size-4 mr-2" />
+                Cancel Schedule
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-1150 space-y-6 px-4 py-8">
+      {/* Top Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+        <Button asChild size="sm" className="h-9 gap-2 px-4">
+          <Link href={`${CHANNEL_ROUTES.SCHEDULED_LIVE.CALENDAR(channelId)}`}>
+            <Calendar className="size-4" /> Calendar
+          </Link>
+        </Button>
+        <Button asChild size="sm" className="h-9 gap-2 px-4">
+          <Link href={`${CHANNEL_ROUTES.SCHEDULED_LIVE.CREATE(channelId)}`}>
+            <PlusIcon className="size-4" /> Schedule Live
+          </Link>
+        </Button>
+      </div>
+      {scheduledLives.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-2 border border-border rounded-xl">
+          <XCircleIcon className="size-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
+            No scheduled lives found.
+          </p>
+        </div>
+      ) : (
+        <ReusableTable
+          columns={columns}
+          data={scheduledLives}
+          renderRow={renderRow}
+          queryArgs={queryArgs}
+          onSort={handleSort}
+          onFilter={handleFilter}
+          totalPages={totalPages}
+        />
+      )}
+
+      {/* Reusable Confirmation Modal */}
+      <PopupModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={executeAction}
+        isLoading={isCanceling}
+        heading="Cancel Scheduled Live?"
+        description={`Are you sure you want to cancel "${modalState.liveTitle}"? This action cannot be undone and attendees will be notified.`}
+        confirmButtonText="Yes, Cancel"
+      />
+    </div>
+  );
+};
+
+export default ScheduledLivesTable;

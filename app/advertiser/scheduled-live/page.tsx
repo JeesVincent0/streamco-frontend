@@ -1,7 +1,7 @@
-import ComingSoon from "@/components/molecules/common/CommingSoon";
+import ScheduledLives from "@/components/organisms/advertiser/ScheduledLives";
 
 const page = () => {
-  return <ComingSoon />;
+  return <ScheduledLives />;
 };
 
 export default page;
